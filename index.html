@@ -656,7 +656,28 @@ function showTvxToast(message) {
     }
 }
 
-// Основной блок авторизации
+// 🟢 MSX və TVX Üçün Təhlükəsiz Bildiriş Sistemi (Alert-lərin Əvəzinə)
+function showTvxToast(message) {
+    if (typeof TVXServices !== "undefined" && TVXServices.showToast) {
+        TVXServices.showToast(message);
+    } else if (typeof MSX !== "undefined" && MSX.showToast) {
+        MSX.showToast(message);
+    } else {
+        // Əgər kompüter brauzerində yoxlayırsansa, standart pəncərə açılacaq
+        alert(message); 
+    }
+}
+
+// 🟢 Proqramın Hazır Olma Siqnalı (Ağ ekranı ləğv edən funksiya)
+function sendTvxReady() {
+    if (typeof TVXServices !== "undefined" && TVXServices.ready) {
+        TVXServices.ready();
+    } else if (typeof MSX !== "undefined" && MSX.ready) {
+        MSX.ready();
+    }
+}
+
+// 🎯 ƏSAS AVTORİZASİYA VƏ BAĞLANTI BLOKU
 fetch(fullUrl, {
     method: "GET",
     headers: {
@@ -677,7 +698,7 @@ fetch(fullUrl, {
         var inputField = document.getElementById('etUsername');
         if (inputField) inputField.focus();
         
-        sendTvxReady();
+        sendTvxReady(); // MSX-ə tətbiqin hazır olduğunu bildiririk
         return;
     }
 
@@ -707,7 +728,7 @@ fetch(fullUrl, {
     var hamburgerBtn = document.getElementById('hamburger');
     if (hamburgerBtn) hamburgerBtn.focus();
     
-    sendTvxReady();
+    sendTvxReady(); // Giriş uğurlu olanda da siqnal göndəririk
 
     if (m3uUrl !== "") {
         if (!isPlaylistLoaded) {
@@ -724,14 +745,18 @@ fetch(fullUrl, {
     showTvxToast("Bağlantı xətası baş verdi!");
     document.getElementById('splash').style.display = 'none';
     document.getElementById('login-screen').style.display = 'flex';
-    sendTvxReady();
+    sendTvxReady(); // Xəta baş verəndə də ekranın donmaması üçün siqnal
 });
 
+// 📺 M3U KANAL SİYAHISINI PARS EDƏN FUNKSİYA
 function fetchFromM3uLocal(url) {
     var listContainer = document.getElementById('ch-list');
     if (listContainer) listContainer.innerHTML = "<h2>Kanallar yüklənir, gözləyin...</h2>";
     
-    fetch(url)
+    // ⚠️ CORS bloklamasından qaçmaq üçün m3u linklərini təhlükəsiz proksiyə yönləndiririk
+    var proxyUrl = "https://allorigins.win" + encodeURIComponent(url);
+
+    fetch(proxyUrl)
     .then(function(response) { return response.text(); })
     .then(function(data) {
         var lines = data.split(/\r?\n/);

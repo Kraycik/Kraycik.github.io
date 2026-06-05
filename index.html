@@ -371,6 +371,14 @@
          object-fit: contain !important;     /* Android-dəki scaleType="fitCenter" ekvivalenti (Şəkli əzmir) */
          pointer-events: none !important;    /* Pult fokusunun səhvən loqonun üstünə keçməsini tam BLOKLAYIR */
          }
+         .ctx-item { 
+            padding: 15px; 
+            background: #2a2a2a; 
+            margin-top: 10px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 20px; 
+        }
       </style>
    </head>
    <body>
@@ -519,6 +527,7 @@
        <!-- FİREBASE KİTABXANALARI -->
       <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
       <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+      <script type="text/javascript" src="https://msx.benzac.de/msx.js"></script>
       <script>
          // --- 1. QLOBAL APPLİKASİYA DƏYİŞƏNLƏRİ ---
          var currentUrl = "";
@@ -627,12 +636,7 @@
              applyLanguage();
          }
          
-         // --- 3. FIREBASE ABUƏNƏ STATUSU VƏ M3U REPOSITORY ---
-         function checkUserStatusAndLoadChannels(code) {
-             console.log("Firebase qoşulması yoxlanılır: " + code);
-             var fullUrl = fbServerUrl + code + ".json";
-             
-             fetch(fullUrl)
+                     fetch(fullUrl)
              .then(function(response) { return response.json(); })
              .then(function(data) {
                  if (!data) {
@@ -645,9 +649,14 @@
                      document.getElementById('login-screen').style.display = 'flex';
                      var inputField = document.getElementById('etUsername');
                      if (inputField) inputField.focus();
+                     
+                     // 🚀 MSX START ƏMRİ BURA GƏLDİ
+                     if (typeof MSX !== "undefined") {
+                         MSX.ready();
+                     }
                      return;
                  }
-         
+
                  var status = data.status || "active";
                  var expireDate = data.expire_date || "";
                  var role = data.role || "user";

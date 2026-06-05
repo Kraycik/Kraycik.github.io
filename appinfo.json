@@ -1,0 +1,11 @@
+{
+    "id": "com.smarttv.customiptv",
+    "version": "1.0.0",
+    "vendor": "IPTV_Dev",
+    "type": "web",
+    "main": "index.html",
+    "title": "Smart IPTV App",
+    "icon": "icon.png",
+    "largeIcon": "icon.png",
+    "resolution": "1920x1080"
+}

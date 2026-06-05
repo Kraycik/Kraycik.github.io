@@ -1,0 +1,9 @@
+{
+  "name": "KÜR IPTV v3.1",
+  "type": "html",
+  "url": "https://github.io",
+  "properties": {
+    "underlay": "none",
+    "overlay": "none"
+  }
+}

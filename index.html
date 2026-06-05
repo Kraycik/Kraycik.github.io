@@ -529,31 +529,31 @@
       <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
       <script type="text/javascript" src="https://msx.benzac.de/tvx-framework.min.js"></script>
       <script>
-         // --- 1. QLOBAL APPLİKASİYA DƏYİŞƏNLƏRİ ---
-         var currentUrl = "";
-         var isInitialChannelLoaded = false;
-         var zappingTimer = null;         
-         var channelSwitchTimer = null;   
-         var hideInfoPanelTimer = null;   
-         var channelNumberBuffer = "";    
-         var channels = [];
-         var isPlaylistLoaded = false;
-         var activeExpireDate = "Yoxdur";
-         var fbServerUrl = "https://kuiptv-ce646-default-rtdb.europe-west1.firebasedatabase.app/";
-         var window = window || this;
-         window.lastPultClickTime = 0;
-         
-         // 🔢 🚀 [ZİREHLİ REAL TV SIĞORTASI]: Pultun 0-9 rəqəm düymələrini sistem açılan an aktiv edirik!
-         if (typeof window !== 'undefined' && window.tizen && window.tizen.tvinputdevice) {
-             var tvKeys = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "NumericKeyboard"];
-             for (var k = 0; k < tvKeys.length; k++) {
-                 try { 
-                     window.tizen.tvinputdevice.registerKey(tvKeys[k]); 
-                 } catch (e) {
-                     console.log("Tizen rəqəm qeydiyyat xətası:", e);
-                 }
-             }
-         }
+// --- 1. QLOBAL APPLİKASİYA DƏYİŞƏNLƏRİ ---
+var currentUrl = "";
+var isInitialChannelLoaded = false;
+var zappingTimer = null;         
+var channelSwitchTimer = null;   
+var hideInfoPanelTimer = null;   
+var channelNumberBuffer = "";    
+var channels = [];
+var isPlaylistLoaded = false;
+var activeExpireDate = "Yoxdur";
+var fbServerUrl = "https://firebasedatabase.app";
+var window = window || this;
+window.lastPultClickTime = 0;
+
+// 🟢 TIZEN REAL TV SIĞORTASI
+if (typeof window !== 'undefined' && window.tizen && window.tizen.tvinputdevice) {
+    var tvKeys = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "NumericKeyboard"];
+    for (var k = 0; k < tvKeys.length; k++) {
+        try { 
+            window.tizen.tvinputdevice.registerKey(tvKeys[k]); 
+        } catch (e) {
+            console.log("Tizen rəqəm qeydiyyat xətası:", e);
+        }
+    }
+}
          
          // --- 2. 8 DİLDƏ TAM PEŞƏKAR LÜĞƏT MATRİSİ ---
          var translations = {
@@ -636,7 +636,18 @@
              applyLanguage();
          }
          
-                             // Вспомогательная функция для отправки сигнала готовности в Media Station X
+                     // 🟢 MSX və TVX Üçün Təhlükəsiz Bildiriş Sistemi (Alert yerinə)
+function showTvxToast(message) {
+    if (typeof TVXServices !== "undefined" && TVXServices.showToast) {
+        TVXServices.showToast(message);
+    } else if (typeof MSX !== "undefined" && MSX.showToast) {
+        MSX.showToast(message);
+    } else {
+        alert(message); // Kompüter brauzeri üçün rezerv
+    }
+}
+
+// 🟢 MSX Hazır Olma Siqnalı
 function sendTvxReady() {
     if (typeof TVXServices !== "undefined" && TVXServices.ready) {
         TVXServices.ready();
@@ -645,115 +656,98 @@ function sendTvxReady() {
     }
 }
 
-// Вспомогательная функция для безопасного вывода сообщений на Smart TV
-function showTvxToast(message) {
-    if (typeof TVXServices !== "undefined" && TVXServices.showToast) {
-        TVXServices.showToast(message);
-    } else if (typeof MSX !== "undefined" && MSX.showToast) {
-        MSX.showToast(message);
-    } else {
-        alert(message); // Резервный вариант для обычного браузера на ПК
-    }
-}
-
-// 🟢 MSX və TVX Üçün Təhlükəsiz Bildiriş Sistemi (Alert-lərin Əvəzinə)
-function showTvxToast(message) {
-    if (typeof TVXServices !== "undefined" && TVXServices.showToast) {
-        TVXServices.showToast(message);
-    } else if (typeof MSX !== "undefined" && MSX.showToast) {
-        MSX.showToast(message);
-    } else {
-        // Əgər kompüter brauzerində yoxlayırsansa, standart pəncərə açılacaq
-        alert(message); 
-    }
-}
-
-// 🟢 Proqramın Hazır Olma Siqnalı (Ağ ekranı ləğv edən funksiya)
-function sendTvxReady() {
-    if (typeof TVXServices !== "undefined" && TVXServices.ready) {
-        TVXServices.ready();
-    } else if (typeof MSX !== "undefined" && MSX.ready) {
-        MSX.ready();
-    }
-}
-
-// 🎯 ƏSAS AVTORİZASİYA VƏ BAĞLANTI BLOKU
-fetch(fullUrl, {
-    method: "GET",
-    headers: {
-        "Accept": "application/json",
-        "Content-Type": "application/json"
-    }
-})
-.then(function(response) { return response.json(); })
-.then(function(data) {
-    if (!data) {
-        showTvxToast("Sistemdə belə bir kod tapılmadı!");
-        localStorage.removeItem("kur_iptv_user_id");
-        var loginBtn = document.getElementById('btnLogin');
-        if (loginBtn) loginBtn.innerText = "DAXİL OL";
-        
-        document.getElementById('splash').style.display = 'none';
-        document.getElementById('login-screen').style.display = 'flex';
+// 🎯 AVTORİZASİYA FUNKSİYASI ( fullUrl BURADA TAM TƏYİN EDİLİR )
+function checkUserAuthorization() {
+    // Öncə local yaddaşdan ID-ni oxuyuruq, yoxdursa test üçün default bir ID və ya boş saxlayırıq
+    var code = localStorage.getItem("kur_iptv_user_id");
+    
+    // Əgər istifadəçi ID daxil etməyibsə, Splash-ı bağlayıb birbaşa Login ekranını göstəririk
+    if (!code) {
+        if(document.getElementById('splash')) document.getElementById('splash').style.display = 'none';
+        if(document.getElementById('login-screen')) document.getElementById('login-screen').style.display = 'flex';
         var inputField = document.getElementById('etUsername');
         if (inputField) inputField.focus();
-        
-        sendTvxReady(); // MSX-ə tətbiqin hazır olduğunu bildiririk
+        sendTvxReady();
         return;
     }
 
-    var status = data.status || "active";
-    var expireDate = data.expire_date || "";
-    var role = data.role || "user";
-    var m3uUrl = data.m3u_url || "";
-    activeExpireDate = expireDate;
+    // Əgər ID varsa, tam URL-i burada formalaşdırırıq (XƏTANIN QƏTİ HƏLLİ)
+    var fullUrl = fbServerUrl + "users/" + code + ".json";
 
-    if (role.toLowerCase() !== "admin") {
-        var today = new Date().toISOString().slice(0, 10);
-        if (status === "blocked" || (expireDate !== "" && expireDate < today)) {
-            showTvxToast("Hesabınızın vaxtı bitib və ya bloklanıb!");
+    fetch(fullUrl, {
+        method: "GET",
+        headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        }
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+        if (!data) {
+            showTvxToast("Sistemdə belə bir kod tapılmadı!");
             localStorage.removeItem("kur_iptv_user_id");
-            handleLogout();
+            
+            if(document.getElementById('splash')) document.getElementById('splash').style.display = 'none';
+            if(document.getElementById('login-screen')) document.getElementById('login-screen').style.display = 'flex';
+            
+            var inputField = document.getElementById('etUsername');
+            if (inputField) inputField.focus();
+            
+            sendTvxReady();
             return;
         }
-    }
 
-    var splashEl = document.getElementById('splash');
-    if (splashEl) splashEl.style.display = 'none';
+        var status = data.status || "active";
+        var expireDate = data.expire_date || "";
+        var role = data.role || "user";
+        var m3uUrl = data.m3u_url || "";
+        activeExpireDate = expireDate;
 
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('main-ui').style.display = 'block';
-    document.getElementById('display-user-id').innerText = "ID: " + code;
-    
-    var hamburgerBtn = document.getElementById('hamburger');
-    if (hamburgerBtn) hamburgerBtn.focus();
-    
-    sendTvxReady(); // Giriş uğurlu olanda da siqnal göndəririk
-
-    if (m3uUrl !== "") {
-        if (!isPlaylistLoaded) {
-            isPlaylistLoaded = true;
-            fetchFromM3uLocal(m3uUrl);
+        if (role.toLowerCase() !== "admin") {
+            var today = new Date().toISOString().slice(0, 10);
+            if (status === "blocked" || (expireDate !== "" && expireDate < today)) {
+                showTvxToast("Hesabınızın vaxtı bitib və ya bloklanıb!");
+                localStorage.removeItem("kur_iptv_user_id");
+                if (typeof handleLogout === "function") handleLogout();
+                return;
+            }
         }
-    } else {
-        showTvxToast("Sizə m3u linki təyin edilməyib!");
-        localStorage.removeItem("kur_iptv_user_id");
-        handleLogout();
-    }
-})
-.catch(function(error) {
-    showTvxToast("Bağlantı xətası baş verdi!");
-    document.getElementById('splash').style.display = 'none';
-    document.getElementById('login-screen').style.display = 'flex';
-    sendTvxReady(); // Xəta baş verəndə də ekranın donmaması üçün siqnal
-});
 
-// 📺 M3U KANAL SİYAHISINI PARS EDƏN FUNKSİYA
+        if(document.getElementById('splash')) document.getElementById('splash').style.display = 'none';
+        if(document.getElementById('login-screen')) document.getElementById('login-screen').style.display = 'none';
+        if(document.getElementById('main-ui')) document.getElementById('main-ui').style.display = 'block';
+        if(document.getElementById('display-user-id')) document.getElementById('display-user-id').innerText = "ID: " + code;
+        
+        var hamburgerBtn = document.getElementById('hamburger');
+        if (hamburgerBtn) hamburgerBtn.focus();
+        
+        sendTvxReady();
+
+        if (m3uUrl !== "") {
+            if (!isPlaylistLoaded) {
+                isPlaylistLoaded = true;
+                fetchFromM3uLocal(m3uUrl);
+            }
+        } else {
+            showTvxToast("Sizə m3u linki təyin edilməyib!");
+            localStorage.removeItem("kur_iptv_user_id");
+            if (typeof handleLogout === "function") handleLogout();
+        }
+    })
+    .catch(function(error) {
+        showTvxToast("Bağlantı xətası baş verdi!");
+        if(document.getElementById('splash')) document.getElementById('splash').style.display = 'none';
+        if(document.getElementById('login-screen')) document.getElementById('login-screen').style.display = 'flex';
+        sendTvxReady();
+    });
+}
+
+// 📺 M3U PLAYLIST YÜKLƏMƏ VƏ CORS PROKSİ SİĞORTASI
 function fetchFromM3uLocal(url) {
     var listContainer = document.getElementById('ch-list');
     if (listContainer) listContainer.innerHTML = "<h2>Kanallar yüklənir, gözləyin...</h2>";
     
-    // ⚠️ CORS bloklamasından qaçmaq üçün m3u linklərini təhlükəsiz proksiyə yönləndiririk
+    // M3U linkinin televizorda bloklanmaması üçün AllOrigins proksisindən istifadə edirik
     var proxyUrl = "https://allorigins.win" + encodeURIComponent(url);
 
     fetch(proxyUrl)
@@ -783,14 +777,17 @@ function fetchFromM3uLocal(url) {
             }
         }
         channels = newList;
-        renderChannels();
+        if (typeof renderChannels === "function") renderChannels();
     })
     .catch(function(e) {
         if (listContainer) listContainer.innerHTML = "<h2>Kanal siyahısı yüklənmədi!</h2>";
         isPlaylistLoaded = false;
     });
 }
-
+// 🎯 SƏHİFƏ TAM YÜKLƏNƏNDƏ AVTORİZASİYANI BAŞLADIRIQ (Ağ ekranın qəti həlli)
+window.onload = function() {
+    checkUserAuthorization();
+};  
          // --- 🗄️ MÜVƏQQƏTİ SESSİYA YADDAŞI: Şifrəsi yazılıb açılan kanalları müvəqqəti burada tuturuq
          if (typeof unlockedSessions === 'undefined') {
          var unlockedSessions = []; 

@@ -2,9 +2,9 @@
   "id": "kuriptvfinal",
   "name": "KÜR IPTV Final",
   "version": "0.2.1",
-  "icon": "https://github.io",
+  "icon": "icon.png",
   "type": "html",
-  "url": "https://github.io",
+  "url": "index.html",
   "properties": {
     "player:properties": {
       "video:type": "html5"

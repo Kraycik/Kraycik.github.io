@@ -1,10 +1,5 @@
 {
   "name": "KÜR IPTV v3.1",
   "version": "1.0.0",
-  "type": "html",
-  "url": "https://Kraycik.github.io/index.html",
-  "properties": {
-    "underlay": "none",
-    "overlay": "none"
-  }
+  "parameter": "html:https://Kraycik.github.io/index.html"
 }

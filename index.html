@@ -636,7 +636,13 @@
              applyLanguage();
          }
          
-                     fetch(fullUrl)
+                                fetch(fullUrl, {
+                 method: "GET",
+                 headers: {
+                     "Accept": "application/json",
+                     "Content-Type": "application/json"
+                 }
+             })
              .then(function(response) { return response.json(); })
              .then(function(data) {
                  if (!data) {
@@ -650,7 +656,6 @@
                      var inputField = document.getElementById('etUsername');
                      if (inputField) inputField.focus();
                      
-                     // 🚀 MSX START ƏMRİ BURA GƏLDİ
                      if (typeof MSX !== "undefined") {
                          MSX.ready();
                      }
@@ -680,6 +685,11 @@
                  document.getElementById('main-ui').style.display = 'block';
                  document.getElementById('display-user-id').innerText = "ID: " + code;
                  document.getElementById('hamburger').focus();
+                 
+                 // 🚀 Uğurlu girişdən sonra MSX ekranını kiliddən çıxaran qızıl sətir
+                 if (typeof MSX !== "undefined") {
+                     MSX.ready();
+                 }
          
                  if (m3uUrl !== "") {
                      if (!isPlaylistLoaded) {
@@ -696,9 +706,12 @@
                  alert("Bağlantı xətası baş verdi!");
                  document.getElementById('splash').style.display = 'none';
                  document.getElementById('login-screen').style.display = 'flex';
+                 if (typeof MSX !== "undefined") {
+                     MSX.ready();
+                 }
              });
          }
-         
+
          function fetchFromM3uLocal(url) {
              var listContainer = document.getElementById('ch-list');
              if (listContainer) listContainer.innerHTML = "<h2>Kanallar yüklənir, gözləyin...</h2>";

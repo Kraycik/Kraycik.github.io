@@ -641,119 +641,106 @@
              console.log("Firebase qoşulması yoxlanılır: " + code);
              var fullUrl = fbServerUrl + code + ".json";
              
-             
-                               fetch(fullUrl, {
-    method: "GET",
-    headers: {
-        "Accept": "application/json",
-        "Content-Type": "application/json"
-    }
-})
-.then(function(response) { return response.json(); })
-.then(function(data) {
-    if (!data) {
-        alert("Sistemdə belə bir kod tapılmadı!");
-        localStorage.removeItem("kur_iptv_user_id");
-        var loginBtn = document.getElementById('btnLogin');
-        if (loginBtn) loginBtn.innerText = "DAXİL OL";
-        
-        document.getElementById('splash').style.display = 'none';
-        document.getElementById('login-screen').style.display = 'flex';
-        var inputField = document.getElementById('etUsername');
-        if (inputField) inputField.focus();
-        
-        if (typeof MSX !== "undefined") {
+             fetch(fullUrl)
+             .then(function(response) { return response.json(); })
+             .then(function(data) {
+                 if (!data) {
+                     alert("Sistemdə belə bir kod tapılmadı!");
+                     localStorage.removeItem("kur_iptv_user_id");
+                     var loginBtn = document.getElementById('btnLogin');
+                     if (loginBtn) loginBtn.innerText = "DAXİL OL";
+                     
+                     document.getElementById('splash').style.display = 'none';
+                     document.getElementById('login-screen').style.display = 'flex';
+                     var inputField = document.getElementById('etUsername');
+                     if (inputField) inputField.focus();
+                     
+                     if (typeof MSX !== "undefined") {
             MSX.ready();
         }
         return;
     }
-
-    var status = data.status || "active";
-    var expireDate = data.expire_date || "";
-    var role = data.role || "user";
-    var m3uUrl = data.m3u_url || "";
-    activeExpireDate = expireDate;
-
-    if (role.toLowerCase() !== "admin") {
-        var today = new Date().toISOString().slice(0, 10);
-        if (status === "blocked" || (expireDate !== "" && expireDate < today)) {
-            alert("Hesabınızın vaxtı bitib və ya bloklanıb!");
-            localStorage.removeItem("kur_iptv_user_id");
-            handleLogout();
-            return;
-        }
-    }
-
-    var splashEl = document.getElementById('splash');
-    if (splashEl) splashEl.style.display = 'none';
-
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('main-ui').style.display = 'block';
-    document.getElementById('display-user-id').innerText = "ID: " + code;
-    document.getElementById('hamburger').focus();
-    
-    if (typeof MSX !== "undefined") {
-        MSX.ready();
-    }
-
-    if (m3uUrl !== "") {
-        if (!isPlaylistLoaded) {
-            isPlaylistLoaded = true;
-            fetchFromM3uLocal(m3uUrl);
-        }
-    } else {
-        alert("Sizə m3u linki təyin edilməyib!");
-        localStorage.removeItem("kur_iptv_user_id");
-        handleLogout();
-    }
-})
-.catch(function(error) {
-    alert("Bağlantı xətası baş verdi!");
-    document.getElementById('splash').style.display = 'none';
-    document.getElementById('login-screen').style.display = 'flex';
-    if (typeof MSX !== "undefined") {
-        MSX.ready();
-    }
-});
-
-function fetchFromM3uLocal(url) {
-    var listContainer = document.getElementById('ch-list');
-    if (listContainer) listContainer.innerHTML = "<h2>Kanallar yüklənir, gözləyin...</h2>";
-    
-    fetch(url)
-    .then(function(response) { return response.text(); })
-    .then(function(data) {
-        var lines = data.split(/\r?\n/);
-        var newList = [];
-        var tempName = "", tempLogo = "";
-
-        for (var i = 0; i < lines.length; i++) {
-            var line = lines[i].trim();
-            if (line.startsWith('#EXTINF')) {
-                if (line.indexOf('tvg-logo="') !== -1) {
-                    tempLogo = line.split('tvg-logo="')[1].split('"')[0];
-                }
-                if (line.indexOf(',') !== -1) {
-                    tempName = line.split(',').pop().trim();
-                }
-            } else if (line.startsWith('http')) {
-                newList.push({
-                    name: tempName === "" ? ("Kanal " + (newList.length + 1)) : tempName,
-                    url: line,
-                    logo: tempLogo === "" ? "icon.png" : tempLogo,
-                    isFavorite: false
-                });
-                tempName = ""; tempLogo = "";
-            }
-        }
-        channels = newList;
-        renderChannels();
-    })
-    .catch(function(e) {
-        if (listContainer) listContainer.innerHTML = "<h2>Kanal siyahısı yüklənmədi!</h2>";
-        isPlaylistLoaded = false;
-    });
-}
+                            
+                 var status = data.status || "active";
+                 var expireDate = data.expire_date || "";
+                 var role = data.role || "user";
+                 var m3uUrl = data.m3u_url || "";
+                 activeExpireDate = expireDate;
+         
+                 if (role.toLowerCase() !== "admin") {
+                     var today = new Date().toISOString().slice(0, 10);
+                     if (status === "blocked" || (expireDate !== "" && expireDate < today)) {
+                         alert("Hesabınızın vaxtı bitib və ya bloklanıb!");
+                         localStorage.removeItem("kur_iptv_user_id");
+                         handleLogout();
+                         return;
+                     }
+                 }
+         
+                 var splashEl = document.getElementById('splash');
+                 if (splashEl) splashEl.style.display = 'none';
+         
+                 document.getElementById('login-screen').style.display = 'none';
+                 document.getElementById('main-ui').style.display = 'block';
+                 document.getElementById('display-user-id').innerText = "ID: " + code;
+                 document.getElementById('hamburger').focus();
+         
+                 if (m3uUrl !== "") {
+                     if (!isPlaylistLoaded) {
+                         isPlaylistLoaded = true;
+                         fetchFromM3uLocal(m3uUrl);
+                     }
+                 } else {
+                     alert("Sizə m3u linki təyin edilməyib!");
+                     localStorage.removeItem("kur_iptv_user_id");
+                     handleLogout();
+                 }
+             })
+             .catch(function(error) {
+                 alert("Bağlantı xətası baş verdi!");
+                 document.getElementById('splash').style.display = 'none';
+                 document.getElementById('login-screen').style.display = 'flex';
+             });
+         }
+         
+         function fetchFromM3uLocal(url) {
+             var listContainer = document.getElementById('ch-list');
+             if (listContainer) listContainer.innerHTML = "<h2>Kanallar yüklənir, gözləyin...</h2>";
+             
+             fetch(url)
+             .then(function(response) { return response.text(); })
+             .then(function(data) {
+                 var lines = data.split(/\r?\n/);
+                 var newList = [];
+                 var tempName = "", tempLogo = "";
+         
+                 for (var i = 0; i < lines.length; i++) {
+                     var line = lines[i].trim();
+                     if (line.startsWith('#EXTINF')) {
+                         if (line.indexOf('tvg-logo="') !== -1) {
+                             tempLogo = line.split('tvg-logo="')[1].split('"')[0];
+                         }
+                         if (line.indexOf(',') !== -1) {
+                             tempName = line.split(',').pop().trim();
+                         }
+                     } else if (line.startsWith('http')) {
+                         newList.push({
+                             name: tempName === "" ? ("Kanal " + (newList.length + 1)) : tempName,
+                             url: line,
+                             logo: tempLogo === "" ? "icon.png" : tempLogo,
+                             isFavorite: false
+                         });
+                         tempName = ""; tempLogo = "";
+                     }
+                 }
+                 channels = newList;
+                 renderChannels();
+             })
+             .catch(function(e) {
+                 if (listContainer) listContainer.innerHTML = "<h2>Kanal siyahısı yüklənmədi!</h2>";
+                 isPlaylistLoaded = false;
+             });
+         }
            
          // --- 🗄️ MÜVƏQQƏTİ SESSİYA YADDAŞI: Şifrəsi yazılıb açılan kanalları müvəqqəti burada tuturuq
          if (typeof unlockedSessions === 'undefined') {

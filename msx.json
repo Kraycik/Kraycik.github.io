@@ -1,0 +1,8 @@
+{
+  "name": "KÜR IPTV v3.1",
+  "version": "1.0.0",
+  "icon": "https://github.io",
+  "parameter": {
+    "action": "link:https://Kraycik.github.io"
+  }
+}

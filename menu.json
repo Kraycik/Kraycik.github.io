@@ -3,7 +3,7 @@
     {
       "title": "Bütün Canlı Kanallar",
       "icon": "https://Kraycik.github.io/logo.png",
-      "action": "video:http://248on.com/x/ffb2ad04.m3u8"
+      "action": "playlist:http://248on.com/x/ffb2ad04.m3u8"
     }
   ]
 }

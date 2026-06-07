@@ -2,8 +2,8 @@
   "menu": [
     {
       "title": "Bütün Canlı Kanallar",
-      "icon": "https://github.io",
-      "action": https://m3u.ch/bqJvpJU1.m3u"
+      "https://Kraycik.github.io/logo.png",
+      "action": "menu:m3u:https://m3u.ch/bqJvpJU1.m3u"
     }
   ]
 }

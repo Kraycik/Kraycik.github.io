@@ -3,9 +3,12 @@
   "headline": "KÜR IPTV",
   "menu": [
     {
-      "title": "KÜR IPTV Giriş",
+      "title": "KÜR IPTV Portalına Giriş",
       "icon": "https://Kraycik.github.io/logo.png",
       "action": "link:https://kraycik.github.io/"
+      "properties": {
+        "interaction": "player"
+      }
     }
   ]
 }

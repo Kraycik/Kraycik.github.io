@@ -1,0 +1,11 @@
+{
+  "type": "list",
+  "headline": "KÜR IPTV Kanallar",
+  "items": [
+    {
+      "title": "Nümunə Kanal",
+      "icon": "https://benzac.de",
+      "action": "video:https://googleapis.com"
+    }
+  ]
+}

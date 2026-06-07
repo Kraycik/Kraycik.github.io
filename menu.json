@@ -3,9 +3,9 @@
   "headline": "KÜR IPTV Kanallar",
   "items": [
     {
-      "title": "Nümunə Kanal",
+      "title": "Bütün Canlı Kanallar",
       "icon": "https://benzac.de",
-      "action": "video:https://googleapis.com"
+      "action": "menu:m3u:https://m3u.ch/bqJvpJU1.m3u"
     }
   ]
 }

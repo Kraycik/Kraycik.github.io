@@ -1,11 +1,9 @@
 {
-  "type": "list",
-  "headline": "KÜR IPTV Kanallar",
-  "items": [
+  "menu": [
     {
       "title": "Bütün Canlı Kanallar",
-      "icon": "https://benzac.de",
-      "action": "menu:m3u:https://m3u.ch/bqJvpJU1.m3u"
+      "icon": "https://github.io",
+      "action": https://m3u.ch/bqJvpJU1.m3u"
     }
   ]
 }

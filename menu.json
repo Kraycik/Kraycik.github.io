@@ -4,9 +4,8 @@
   "menu": [
     {
       "title": "Bütün Canlı Kanallar",
-       "icon": "https://Kraycik.github.io/logo.png",
-       "action": "video:https://corsproxy.io/?url=http://248on.com/x/ffb2ad04.m3u8"
+      "icon": "https://Kraycik.github.io/logo.png
+      "action": "link:https://kraycik.github.io/"
     }
   ]
 }
-

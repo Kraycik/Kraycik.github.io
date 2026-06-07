@@ -2,7 +2,7 @@
   "menu": [
     {
       "title": "Bütün Canlı Kanallar",
-      "https://Kraycik.github.io/logo.png",
+      "icon": "https://Kraycik.github.io/logo.png",
       "action": "menu:m3u:https://m3u.ch/bqJvpJU1.m3u"
     }
   ]

@@ -1,6 +1,6 @@
 var app = {
     // 1. Firebase URL-ni bura dəqiq yaz (Mötərizə daxilindəki URL-i özünkü ilə dəyiş)
-    fbUrl: "https://firebasedatabase.app",
+    fbUrl: "https://kuiptv-ce646-default-rtdb.europe-west1.firebasedatabase.app/",
     sharedLib: null,
     isMenuOpen: false,
 

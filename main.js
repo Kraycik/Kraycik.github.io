@@ -169,4 +169,3 @@ var app = {
 
 window.onload = function() { app.init(); };
 function checkLogin() { app.checkLogin(); }
-

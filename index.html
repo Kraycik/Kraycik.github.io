@@ -228,9 +228,34 @@
         </div>
     </div>
 
-    <!-- FIREBASE RESMI KITABXANALARI -->
+         <!-- 1. JQUERY VƏ FIREBASE KİTABXANALARI -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+    <!-- 2. MEDIA STATION X ÜÇÜN KITABXANA -->
+    <script src="https://msx.benzac.de/tvx-app.min.js?v=0.1.166"></script>
+
+    <!-- 3. SƏNİN ƏSAS BÖYÜK KODLARINI SAXLAYAN FAYLI ÇAĞIRIRIQ -->
+    <script src="main.js"></script>
+
+    <script>
+        // Media Station X (TV) mühitini təhlükəsiz şəkildə başladırıq
+        if (typeof TVXApp !== 'undefined') {
+            TVXApp.init({
+                id: "kur_iptv_app",
+                name: "KÜR IPTV",
+                version: "1.0.0",
+                success: function() {
+                    console.log("MSX uğurla inteqrasiya olundu.");
+                },
+                error: function(error) {
+                    console.error("MSX xətası: ", error);
+                }
+            });
+        }
+    </script>
+
 
       <script>
       

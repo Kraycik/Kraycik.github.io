@@ -239,11 +239,12 @@
     <!-- 3. SƏNİN ƏSAS BÖYÜK KODLARINI SAXLAYAN FAYLI ÇAĞIRIRIQ -->
     <script src="main.js"></script>
 
-    <script>
-        // Media Station X (TV) mühitini təhlükəsiz şəkildə başladırıq
+       <script>
+        // Media Station X (TV) mühitini televizorun tələb etdiyi rəsmi formatda başladırıq
         if (typeof TVXApp !== 'undefined') {
             TVXApp.init({
-                id: "kur_iptv_app",
+                // Xəta verən "kur_iptv_app" sözünü mütləq tələb olunan "menu:" linki ilə əvəzlədik:
+                id: "menu:https://Kraycik.github.io",
                 name: "KÜR IPTV",
                 version: "1.0.0",
                 success: function() {

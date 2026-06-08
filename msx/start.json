@@ -4,8 +4,9 @@
   "menu": [
     {
       "title": "Bütün Canlı Kanallar",
-      "icon": "https://Kraycik.github.io/logo.png",
-      "action": "menu:https://kraycik.github.io/start.json"
+      "icon": "https://kraycik.github.io/logo.png",
+      "action": "menu:https://kraycik.github.io/start.json",
+      "name": "Butun_Canli_Kanallar"
     }
   ]
 }

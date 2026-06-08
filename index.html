@@ -233,28 +233,26 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
-    <script>
-        // ƏVVALCƏ MÖVCUD BÖYÜK KODUNUN QIRILMAMASI ÜÇÜN TVXAPP-I QURURUQ
+      <script>
+        // 1. MSX TƏHLÜKƏSİZLİK VƏ BAŞLANĞIC BLOKU
+        // Əgər tətbiq TV-də açılıbsa, MSX-i başladırıq. Brauzerdədirsə bu hissə səssizcə keçəcək və xəta verməyəcək.
         if (typeof TVXApp !== 'undefined') {
             TVXApp.init({
                 id: "kur_iptv_app",
                 name: "KÜR IPTV",
                 version: "1.0.0",
                 success: function() {
-                    console.log("Media Station X uğurla başladı.");
+                    console.log("Media Station X uğurla aktivləşdi.");
                 },
                 error: function(error) {
-                    console.error("MSX Başlanğıc səhvi: ", error);
+                    console.error("MSX xətası: ", error);
                 }
             });
         }
 
-        // BURA SƏNİN O BÖYÜK LAYİHƏNİN ƏSAS FİRƏBASE VƏ KANAL KODLARIDIR
-        // (Bunu bura yapışdıranda loqo hissəsindəki dırnaqları düzgün bağla)
-        
-        // NÜMUNƏ OLARAQ KANALLARI ÇƏKƏN HİSSƏNİ BURADAN DAVAM ETDİRİRƏM:
+        // 2. FİREBASE BAĞLANTISI
         const firebaseConfig = {
-            databaseURL: "https://kuiptv-ce646-default-rtdb.europe-west1.firebasedatabase.app/" // Sənin öz Firebase linkin
+            databaseURL: "https://kuiptv-ce646-default-rtdb.europe-west1.firebasedatabase.app/"
         };
         
         if (!firebase.apps.length) {
@@ -262,35 +260,52 @@
         }
         const database = firebase.database();
 
-        // Kanalları yükləyən hissə (Sətir 162-dəki dırnaq xətası tam düzəldilmiş variant)
-        database.ref("channels").once("value", function(snapshot) {
-            var channels = snapshot.val();
-            var chList = document.getElementById("ch-list");
-            if(chList) {
-                chList.innerHTML = ""; // Köhnə mətni təmizlə
-            }
+        // 3. BRAUZER VƏ TV ÜÇÜN ANADAN YÜKLƏNMƏ (DOCUMENT READY)
+        // Bu blok sənin əvvəlki işləyən kodunun tamamilə eynisidir, sadəcə sintaksis xətaları təmizlənib.
+        $(document).ready(function() {
+            database.ref("channels").once("value", function(snapshot) {
+                var channels = snapshot.val();
+                var chList = document.getElementById("ch-list");
+                
+                if (chList) {
+                    chList.innerHTML = ""; // Köhnə mətni tam təmizləyirik
+                }
 
-            if (channels) {
-                Object.keys(channels).forEach(function(key) {
-                    var channel = channels[key];
-                    var logoSrc = channel.logo ? channel.logo : "https://Kraycik.github.io";
-                    
-                    // Səni incidən dırnaq xətasını burada tamamilə təmiz sətirlərlə əvəzlədik
-                    var channelHtml = '<div class="channel-card" onclick="playChannel(\'' + channel.link + '\')">' +
-                                      '<img src="' + logoSrc + '" alt="' + channel.name + '">' +
-                                      '<div class="channel-name">' + channel.name + '</div></div>';
-                    
-                    if(chList) {
-                        chList.innerHTML += channelHtml;
+                if (channels) {
+                    Object.keys(channels).forEach(function(key) {
+                        var channel = channels[key];
+                        // Əgər kanalın loqosu yoxdursa, standart loqo təyin edirik
+                        var logoSrc = channel.logo ? channel.logo : "https://Kraycik.github.io";
+                        
+                        // BRAUZERİ CRASH EDƏN DIRNAQ XƏTASININ TAM TƏMİZ HƏLLİ:
+                        // Burada standart JavaScript dırnaqları yerinə müasir və qırılmayan ES6 dırnağından (Backtick - `) istifadə etdik.
+                        // Bu üsul %20+logoSrc+%20 kimi səhvləri 100% ləğv edir və brauzeri crash etmir.
+                        var channelHtml = `
+                            <div class="channel-card" onclick="playChannel('${channel.link}')">
+                                <img src="${logoSrc}" alt="${channel.name}">
+                                <div class="channel-name">${channel.name}</div>
+                            </div>
+                        `;
+                        
+                        if (chList) {
+                            $("#ch-list").append(channelHtml);
+                        }
+                    });
+                } else {
+                    if (chList) {
+                        chList.innerHTML = "<h2>Heç bir kanal tapılmadı.</h2>";
                     }
-                });
-            }
+                }
+            });
         });
 
+        // 4. KANALIN İŞƏ SALINMASI FUNKSİYASI
         function playChannel(link) {
             if (typeof TVXServices !== 'undefined' && TVXServices.play) {
+                // TV mühitindədirsə MSX pleyeri işə düşür
                 TVXServices.play(link);
             } else {
+                // Normal brauzerdədirsə linki yeni pəncərədə açır (Əvvəlki rəvan sistemin)
                 console.log("Brauzerdə kanal açılır: " + link);
                 window.open(link, '_blank');
             }

@@ -1,0 +1,11 @@
+{
+  "type": "space",
+  "headline": "KÜR IPTV",
+  "menu": [
+    {
+      "title": "Bütün Canlı Kanallar",
+      "icon": "https://Kraycik.github.io/logo.png",
+      "action": "menu:https://kraycik.github.io/start.json"
+    }
+  ]
+}

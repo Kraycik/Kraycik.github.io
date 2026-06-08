@@ -3,11 +3,7 @@
   "version": "1.0.0",
   "type": "space",
   "headline": "KÜR IPTV Portal",
-  "parameter": {
-    "id": "kur_iptv_app",
-    "name": "KÜR IPTV",
-    "version": "1.0.0"
-  },
+  "parameter": "kur_iptv_app",
   "menu": [
     {
       "title": "Bütün Canlı Kanallar",

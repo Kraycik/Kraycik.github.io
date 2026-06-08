@@ -229,12 +229,12 @@
         </div>
     </div>
 
-      <!-- FIREBASE RESMI KITABXANALARI -->
+       <!-- FIREBASE RESMI KITABXANALARI -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
     <script>
-        // TVXApp mövcud olub-olmadığını yoxlayırıq (Brauzer xətası verməsin deyə)
+        // ƏVVALCƏ MÖVCUD BÖYÜK KODUNUN QIRILMAMASI ÜÇÜN TVXAPP-I QURURUQ
         if (typeof TVXApp !== 'undefined') {
             TVXApp.init({
                 id: "kur_iptv_app",
@@ -242,39 +242,61 @@
                 version: "1.0.0",
                 success: function() {
                     console.log("Media Station X uğurla başladı.");
-                    
-                    // URL-dən parametri təhlükəsiz şəkildə oxuyuruq
-                    var startUrl = "";
-                    if (typeof TVXTools !== 'undefined') {
-                        startUrl = TVXTools.getUrlParameter("url");
-                    }
-                    
-                    if (!startUrl || startUrl === "") {
-                        startUrl = "https://github.io";
-                    }
-                    
-                    // Sənin Firebase və digər əsas tətbiq kodların buraya gəlməlidir
-                    initApplication(startUrl);
                 },
                 error: function(error) {
                     console.error("MSX Başlanğıc səhvi: ", error);
                 }
             });
-        } else {
-            console.log("Tətbiq MSX xaricində (normal brauzerdə) başladıldı.");
-            // Brauzerdə birbaşa işləməsi üçün standart funksiyanı çağırırıq
-            initApplication("https://github.io");
         }
 
-        // Əsas tətbiq funksiyan (Köhnə kodunun qalan hissəsi bura daxil olur)
-        function initApplication(url) {
-            // Bura sənin daxili menyunu quran, kanalları çəkən və Firebase qoşulmasını edən kodlarındır.
-            // Diqqət et: Dırnaq işarələrinə ('' və ya "") və loqo dəyişənlərinə diqqət yetir.
-            console.log("Yüklənən pleylist: " + url);
+        // BURA SƏNİN O BÖYÜK LAYİHƏNİN ƏSAS FİRƏBASE VƏ KANAL KODLARIDIR
+        // (Bunu bura yapışdıranda loqo hissəsindəki dırnaqları düzgün bağla)
+        
+        // NÜMUNƏ OLARAQ KANALLARI ÇƏKƏN HİSSƏNİ BURADAN DAVAM ETDİRİRƏM:
+        const firebaseConfig = {
+            databaseURL: "https://kuiptv-ce646-default-rtdb.europe-west1.firebasedatabase.app/" // Sənin öz Firebase linkin
+        };
+        
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const database = firebase.database();
+
+        // Kanalları yükləyən hissə (Sətir 162-dəki dırnaq xətası tam düzəldilmiş variant)
+        database.ref("channels").once("value", function(snapshot) {
+            var channels = snapshot.val();
+            var chList = document.getElementById("ch-list");
+            if(chList) {
+                chList.innerHTML = ""; // Köhnə mətni təmizlə
+            }
+
+            if (channels) {
+                Object.keys(channels).forEach(function(key) {
+                    var channel = channels[key];
+                    var logoSrc = channel.logo ? channel.logo : "https://Kraycik.github.io";
+                    
+                    // Səni incidən dırnaq xətasını burada tamamilə təmiz sətirlərlə əvəzlədik
+                    var channelHtml = '<div class="channel-card" onclick="playChannel(\'' + channel.link + '\')">' +
+                                      '<img src="' + logoSrc + '" alt="' + channel.name + '">' +
+                                      '<div class="channel-name">' + channel.name + '</div></div>';
+                    
+                    if(chList) {
+                        chList.innerHTML += channelHtml;
+                    }
+                });
+            }
+        });
+
+        function playChannel(link) {
+            if (typeof TVXServices !== 'undefined' && TVXServices.play) {
+                TVXServices.play(link);
+            } else {
+                console.log("Brauzerdə kanal açılır: " + link);
+                window.open(link, '_blank');
+            }
         }
     </script>
 
-      
           // --- PLEYER VƏ TAYMER DƏYİŞƏNLƏRİ (SƏNİN KOTLİN KODUNUN QARŞILIĞI) ---
     var currentUrl = "";
     var isInitialChannelLoaded = false;

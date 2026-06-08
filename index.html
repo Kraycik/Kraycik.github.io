@@ -239,12 +239,12 @@
     <!-- 3. SƏNİN ƏSAS BÖYÜK KODLARINI SAXLAYAN FAYLI ÇAĞIRIRIQ -->
     <script src="main.js"></script>
 
-       <script>
+        <script>
         // Media Station X (TV) mühitini televizorun tələb etdiyi rəsmi formatda başladırıq
         if (typeof TVXApp !== 'undefined') {
             TVXApp.init({
-                // Xəta verən "kur_iptv_app" sözünü mütləq tələb olunan "menu:" linki ilə əvəzlədik:
-                id: "menu:https://Kraycik.github.io/msx/start.json",
+                // Xəta verən "kur_iptv_app" sözünü rəsmi standarta uyğun "menu:" linki ilə əvəzlədik:
+                id: "menu:https://Kraycik.github.io/menu.json",
                 name: "KÜR IPTV",
                 version: "1.0.0",
                 success: function() {
@@ -256,9 +256,7 @@
             });
         }
     </script>
-
-
-      <script>
+ <style>
       
           // --- PLEYER VƏ TAYMER DƏYİŞƏNLƏRİ (SƏNİN KOTLİN KODUNUN QARŞILIĞI) ---
     var currentUrl = "";

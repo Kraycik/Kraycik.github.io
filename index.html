@@ -234,32 +234,44 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
     <script>
-        // Media Station X sistemini tələb olunan parametrlərlə başladırıq
-        TVXApp.init({
-            id: "kur_iptv_app",
-            name: "KÜR IPTV",
-            version: "1.0.0",
-            success: function() {
-                // Tətbiq uğurla başladıqda işə düşəcək əsas kodların
-                console.log("KÜR IPTV uğurla başladıldı.");
-                
-                // Əgər URL-də xüsusi keçid linki yoxdursa, avtomatik sənin əsas start.json faylını götürsün
-                var startUrl = TVXTools.getUrlParameter("url");
-                if (!startUrl || startUrl === "") {
-                    startUrl = "https://github.io";
+        // TVXApp mövcud olub-olmadığını yoxlayırıq (Brauzer xətası verməsin deyə)
+        if (typeof TVXApp !== 'undefined') {
+            TVXApp.init({
+                id: "kur_iptv_app",
+                name: "KÜR IPTV",
+                version: "1.0.0",
+                success: function() {
+                    console.log("Media Station X uğurla başladı.");
+                    
+                    // URL-dən parametri təhlükəsiz şəkildə oxuyuruq
+                    var startUrl = "";
+                    if (typeof TVXTools !== 'undefined') {
+                        startUrl = TVXTools.getUrlParameter("url");
+                    }
+                    
+                    if (!startUrl || startUrl === "") {
+                        startUrl = "https://github.io";
+                    }
+                    
+                    // Sənin Firebase və digər əsas tətbiq kodların buraya gəlməlidir
+                    initApplication(startUrl);
+                },
+                error: function(error) {
+                    console.error("MSX Başlanğıc səhvi: ", error);
                 }
-                
-                // Bura Firebase tənzimləmələrini və tətbiqinin digər funksiyalarını davam etdirirsən...
-            },
-            error: function(error) {
-                // Səhv baş verərsə ekranda xəbərdarlıq göstərsin
-                if (typeof TVXServices !== 'undefined' && TVXServices.warn) {
-                    TVXServices.warn("Başlanğıc səhvi: " + error);
-                } else {
-                    alert("MSX Başlanğıc səhvi: " + error);
-                }
-            }
-        });
+            });
+        } else {
+            console.log("Tətbiq MSX xaricində (normal brauzerdə) başladıldı.");
+            // Brauzerdə birbaşa işləməsi üçün standart funksiyanı çağırırıq
+            initApplication("https://github.io");
+        }
+
+        // Əsas tətbiq funksiyan (Köhnə kodunun qalan hissəsi bura daxil olur)
+        function initApplication(url) {
+            // Bura sənin daxili menyunu quran, kanalları çəkən və Firebase qoşulmasını edən kodlarındır.
+            // Diqqət et: Dırnaq işarələrinə ('' və ya "") və loqo dəyişənlərinə diqqət yetir.
+            console.log("Yüklənən pleylist: " + url);
+        }
     </script>
 
       

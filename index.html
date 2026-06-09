@@ -2377,24 +2377,6 @@ function playTizenVideo(url) {
              });
          })();
       </script>
-      <!-- webOS TV API Kitabxanası -->
-      <script src="$WEBOS_HOST$webOS.js" type="text/javascript"></script>
-      
-      <!-- webOS Pult İdarəetmə Skripti -->
-      <script type="text/javascript">
-         document.addEventListener('keydown', function(e) {
-             switch(e.keyCode) {
-                 case 461: // LG webOS Geri (Back) düyməsi
-                     if (window.webOS && window.webOS.platformBack) {
-                         window.webOS.platformBack();
-                     } else {
-                         window.close();
-                     }
-                     break;
-             }
-         });
-      </script>
-
       <!-- 🎯 SƏNİN ŞƏXSİ LOQON: BÜTÜN SKRİPTLƏRDƏN SONRA, 100% SƏRBƏST YERDƏ -->
       <img id="my-logo" src="my-logo.png" onerror="console.log('❌ Loqo şəkli qovluqda tapılmadı!')" alt="Logo">
    </head>

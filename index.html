@@ -385,6 +385,7 @@
          pointer-events: none !important;    /* Pult fokusunun səhvən loqonun üstünə keçməsini tam BLOKLAYIR */
          }
       </style>
+      <script src="https://msx.benzac.de/tvx-app.min.js?v=0.1.166"></script>
    </head>
    <body>
       <div id="player-wrapper" style="position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 1;">
@@ -641,68 +642,94 @@
          }
          
                  // --- 3. FIREBASE ABUNƏ STATUSU VƏ M3U REPOSITORY ---
-         function checkUserStatusAndLoadChannels(code) {
-             console.log("Firebase qoşulması yoxlanılır: " + code);
-             var fullUrl = fbServerUrl + code + ".json";
-             
-             fetch(fullUrl)
-             .then(function(response) { return response.json(); })
-             .then(function(data) {
-                 if (!data) {
-                     showTvxToast("Sistemdə belə bir kod tapılmadı!");
-                     localStorage.removeItem("kur_iptv_user_id");
-                     var loginBtn = document.getElementById('btnLogin');
-                     if (loginBtn) loginBtn.innerText = "DAXİL OL";
-                     
-                     document.getElementById('splash').style.display = 'none';
-                     document.getElementById('login-screen').style.display = 'flex';
-                     var inputField = document.getElementById('etUsername');
-                     if (inputField) inputField.focus();
-                     return;
-                 }
-         
-                 var status = data.status || "active";
-                 var expireDate = data.expire_date || "";
-                 var role = data.role || "user";
-                 var m3uUrl = data.m3u_url || "";
-                 activeExpireDate = expireDate;
-         
-                 if (role.toLowerCase() !== "admin") {
-                     var today = new Date().toISOString().slice(0, 10);
-                     if (status === "blocked" || (expireDate !== "" && expireDate < today)) {
-                         showTvxToast("Hesabınızın vaxtı bitib və ya bloklanıb!");
-                         localStorage.removeItem("kur_iptv_user_id");
-                         handleLogout();
-                         return;
-                     }
-                 }
-         
-                 var splashEl = document.getElementById('splash');
-                 if (splashEl) splashEl.style.display = 'none';
-         
-                 document.getElementById('login-screen').style.display = 'none';
-                 document.getElementById('main-ui').style.display = 'block';
-                 document.getElementById('display-user-id').innerText = "ID: " + code;
-                 document.getElementById('hamburger').focus();
-         
-                 if (m3uUrl !== "") {
-                     if (!isPlaylistLoaded) {
-                         isPlaylistLoaded = true;
-                         fetchFromM3uLocal(m3uUrl);
-                     }
-                 } else {
-                     showTvxToast("Sizə m3u linki təyin edilməyib!");
-                     localStorage.removeItem("kur_iptv_user_id");
-                     handleLogout();
-                 }
-             })
-             .catch(function(error) {
-                 showTvxToast("Bağlantı xətası baş verdi!");
-                 document.getElementById('splash').style.display = 'none';
-                 document.getElementById('login-screen').style.display = 'flex';
-             });
-         }
-         
+function checkUserStatusAndLoadChannels(code) {
+    console.log("Firebase qoşulması yoxlanılır: " + code);
+    var fullUrl = fbServerUrl + code + ".json";
+    
+    // Bu cihaz üçün unikal token yaradırıq (yoxdursa)
+    var myDeviceToken = localStorage.getItem("kur_iptv_device_token");
+    if (!myDeviceToken) {
+        myDeviceToken = "tv_" + Math.random().toString(36).substr(2, 9) + "_" + Date.now();
+        localStorage.setItem("kur_iptv_device_token", myDeviceToken);
+    }
+    
+    fetch(fullUrl)
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+        if (!data) {
+            showTvxToast("Sistemdə belə bir kod tapılmadı!");
+            localStorage.removeItem("kur_iptv_user_id");
+            var loginBtn = document.getElementById('btnLogin');
+            if (loginBtn) loginBtn.innerText = "DAXİL OL";
+            
+            document.getElementById('splash').style.display = 'none';
+            document.getElementById('login-screen').style.display = 'flex';
+            var inputField = document.getElementById('etUsername');
+            if (inputField) inputField.focus();
+            return;
+        }
+
+        // --- 🎯 СIHAZ BLOKLANMASI YOXLANIŞI (KOTLIN-DƏKİ KİMİ) ---
+        var activeDevice = data.active_device || "";
+        if (activeDevice !== "" && activeDevice !== myDeviceToken) {
+            showTvxToast("⚠️ Bu ID hazırda başqa cihazda istifadə edilir!");
+            document.getElementById('splash').style.display = 'none';
+            document.getElementById('login-screen').style.display = 'flex';
+            var loginBtn = document.getElementById('btnLogin');
+            if (loginBtn) loginBtn.innerText = "DAXİL OL";
+            return;
+        }
+
+        // Əgər cihaz boşdursa, bu cihazın tokenini bazaya qeyd edirik
+        if (activeDevice === "") {
+            fetch(fullUrl, {
+                method: 'PATCH',
+                body: JSON.stringify({ active_device: myDeviceToken })
+            });
+        }
+
+        var status = data.status || "active";
+        var expireDate = data.expire_date || "";
+        var role = data.role || "user";
+        var m3uUrl = data.m3u_url || "";
+        activeExpireDate = expireDate;
+
+        if (role.toLowerCase() !== "admin") {
+            var today = new Date().toISOString().slice(0, 10);
+            if (status === "blocked" || (expireDate !== "" && expireDate < today)) {
+                showTvxToast("Hesabınızın vaxtı bitib və ya bloklanıb!");
+                localStorage.removeItem("kur_iptv_user_id");
+                handleLogout();
+                return;
+            }
+        }
+
+        var splashEl = document.getElementById('splash');
+        if (splashEl) splashEl.style.display = 'none';
+
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('main-ui').style.display = 'block';
+        document.getElementById('display-user-id').innerText = "ID: " + code;
+        document.getElementById('hamburger').focus();
+
+        if (m3uUrl !== "") {
+            if (!isPlaylistLoaded) {
+                isPlaylistLoaded = true;
+                fetchFromM3uLocal(m3uUrl);
+            }
+        } else {
+            showTvxToast("Sizə m3u linki təyin edilməyib!");
+            localStorage.removeItem("kur_iptv_user_id");
+            handleLogout();
+        }
+    })
+    .catch(function(error) {
+        showTvxToast("Bağlantı xətası baş verdi!");
+        document.getElementById('splash').style.display = 'none';
+        document.getElementById('login-screen').style.display = 'flex';
+    });
+}
+
          function fetchFromM3uLocal(url) {
              var listContainer = document.getElementById('ch-list');
              if (listContainer) listContainer.innerHTML = "<h2>Kanallar yüklənir, gözləyin...</h2>";
@@ -2224,10 +2251,34 @@ function playTizenVideo(url) {
          }, true); // 'true' siqnalı birinci tutub arxa fonu kilidləmək üçündür
          
          
-         // --- 7. KÖMƏKÇİ FUNKSİYALAR ---
-         function resetSettings() { localStorage.clear(); alert("Bütün ayarlar sıfırlandı."); window.location.reload(); }
-         function handleLogout() { isPlaylistLoaded = false; channels = []; var mui = document.getElementById('main-ui'); if(mui) mui.style.display = 'none'; var ls = document.getElementById('login-screen'); if (ls) { ls.style.display = 'flex'; var inp = document.getElementById('etUsername'); if (inp) { inp.value = ""; inp.focus(); } } }
-         function closeStatusModal() { var modal = document.getElementById('status-modal') || document.getElementById('adminMessageModal'); if (modal) modal.style.display = "none"; var actBtn = document.getElementById('btn-active-period'); if (actBtn) actBtn.focus(); }
+        function resetSettings() {
+    console.log("Ayarlar sıfırlanır...");
+    var userCode = localStorage.getItem("kur_iptv_user_id");
+
+    if (userCode) {
+        // Firebase-də qeydiyyatda olan active_device-ı silirik
+        fetch(fbServerUrl + userCode + ".json", {
+            method: 'PATCH',
+            body: JSON.stringify({ active_device: "" })
+        })
+        .then(function() {
+            console.log("Firebase cihaz qeydiyyatı təmizləndi.");
+            localStorage.clear();
+            alert("Bütün ayarlar sıfırlandı və cihaz qeydiyyatı silindi.");
+            window.location.reload();
+        })
+        .catch(function(e) {
+            console.error("Bazadan cihaz silinərkən xəta: ", e);
+            localStorage.clear();
+            window.location.reload();
+        });
+    } else {
+        localStorage.clear();
+        window.location.reload();
+    }
+}
+
+
          
          // --- HARDWARE ZAPPİNG ALQORİTMİ ---
          function handleZappingDigit(digit) {
@@ -2351,23 +2402,7 @@ function playTizenVideo(url) {
                  } catch (err) {}
              });
          })();
-      </script>
-      <!-- webOS TV API Kitabxanası -->
-      <script src="$WEBOS_HOST$webOS.js" type="text/javascript"></script>
-      
-      <!-- webOS Pult İdarəetmə Skripti -->
-      <script type="text/javascript">
-         document.addEventListener('keydown', function(e) {
-             switch(e.keyCode) {
-                 case 461: // LG webOS Geri (Back) düyməsi
-                     if (window.webOS && window.webOS.platformBack) {
-                         window.webOS.platformBack();
-                     } else {
-                         window.close();
-                     }
-                     break;
-             }
-         });
+     
       </script>
 
       <!-- 🎯 SƏNİN ŞƏXSİ LOQON: BÜTÜN SKRİPTLƏRDƏN SONRA, 100% SƏRBƏST YERDƏ -->

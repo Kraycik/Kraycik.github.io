@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "type": "space",
   "headline": "KÜR IPTV Portal",
-  "parameter": "menu:request:interaction:menu@https://kraycik.github.io/menu.json",
+  "parameter": "menu:https://kraycik.github.io/menu.json",
   "menu": [
     {
       "title": "Bütün Canlı Kanallar",
       "icon": "https://kraycik.github.io/logo.png",
       "name": "Butun_Canli_Kanallar",
-      "action": "link:https://kraycik.github.io/index.html"
+      "action": "link:request:interaction:menu@https://kraycik.github.io/index.html"
     }
   ]
 }

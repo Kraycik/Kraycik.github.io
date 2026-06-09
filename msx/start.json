@@ -1,7 +1,8 @@
 {
   "name": "KÜR IPTV",
   "version": "1.0.0",
-  "launcher": {
-    "parameter": "link:https://kraycik.github.io/index.html"
+  "parameter": "menu:request:interaction:init",
+  "interaction": {
+    "action": "link:https://kraycik.github.io/index.html"
   }
 }

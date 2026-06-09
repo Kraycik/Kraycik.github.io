@@ -385,6 +385,7 @@
          pointer-events: none !important;    /* Pult fokusunun səhvən loqonun üstünə keçməsini tam BLOKLAYIR */
          }
       </style>
+      <script src="https://msx.benzac.de/tvx-app.min.js?v=0.1.166"></script>
    </head>
    <body>
       <div id="player-wrapper" style="position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 1;">
@@ -2283,33 +2284,57 @@ function playTizenVideo(url) {
              }
          });
          
-         // --- 8. LIFECYCLE INITIALIZATION ---
-         window.onload = function() {
-             if (window.tizen && window.tizen.tvinputdevice) {
-                 try {
-                     tizen.tvinputdevice.registerKey("MediaPlayPause"); tizen.tvinputdevice.registerKey("MediaPlay"); tizen.tvinputdevice.registerKey("MediaPause");
-                 } catch (e) { console.error(e); }
-             }
-             if (typeof applyLanguage === 'function') applyLanguage();
-             var savedUserId = localStorage.getItem("kur_iptv_user_id");
-             if (savedUserId && savedUserId.trim() !== "") {
-                 var loginBtn = document.getElementById('btnLogin'); if (loginBtn) loginBtn.innerText = "Yoxlanılır...";
-                 setTimeout(function() { checkUserStatusAndLoadChannels(savedUserId.trim()); }, 2000);
-             } else {
-                 setTimeout(function() {
-                     var splash = document.getElementById('splash'); var login = document.getElementById('login-screen');
-                     if (splash) splash.style.display = 'none'; if (login) { login.style.display = 'flex'; setTimeout(function() { var inp = document.getElementById('etUsername'); if (inp) inp.focus(); }, 300); }
-                 }, 2000);
-             }
-         };
-         
-         function onLogin() {
-             var user = document.getElementById('etUsername').value.trim();
-             if (user) {
-                 var loginBtn = document.getElementById('btnLogin'); if (loginBtn) loginBtn.innerText = "Yoxlanılır...";
-                 localStorage.setItem("kur_iptv_user_id", user); checkUserStatusAndLoadChannels(user);
-             } else { alert("Zəhmət olmasa ID yazın!"); }
-         }
+                // --- 8. LIFECYCLE INITIALIZATION ---
+        window.onload = function() {
+            
+            // --- 🚀 MSX BLOKLAMASINI QIRAN QIZIL SƏTİR ---
+            if (typeof TVXApp !== 'undefined') {
+                TVXApp.init();
+                console.log("TVX Framework uğurla aktiv edildi.");
+            }
+            // ---------------------------------------------
+
+            if (window.tizen && window.tizen.tvinputdevice) {
+                try {
+                    tizen.tvinputdevice.registerKey("MediaPlayPause"); 
+                    tizen.tvinputdevice.registerKey("MediaPlay"); 
+                    tizen.tvinputdevice.registerKey("MediaPause");
+                } catch (e) { console.error(e); }
+            }
+            
+            if (typeof applyLanguage === 'function') applyLanguage();
+            
+            var savedUserId = localStorage.getItem("kur_iptv_user_id");
+            if (savedUserId && savedUserId.trim() !== "") {
+                var loginBtn = document.getElementById('btnLogin'); 
+                if (loginBtn) loginBtn.innerText = "Yoxlanılır...";
+                setTimeout(function() { checkUserStatusAndLoadChannels(savedUserId.trim()); }, 2000);
+            } else {
+                setTimeout(function() {
+                    var splash = document.getElementById('splash'); 
+                    var login = document.getElementById('login-screen');
+                    if (splash) splash.style.display = 'none'; 
+                    if (login) { 
+                        login.style.display = 'flex'; 
+                        setTimeout(function() { 
+                            var inp = document.getElementById('etUsername'); 
+                            if (inp) inp.focus(); 
+                        }, 300); 
+                    }
+                }, 2000);
+            }
+        };
+        
+        function onLogin() {
+            var user = document.getElementById('etUsername').value.trim();
+            if (user) {
+                var loginBtn = document.getElementById('btnLogin'); 
+                if (loginBtn) loginBtn.innerText = "Yoxlanılır...";
+                localStorage.setItem("kur_iptv_user_id", user); 
+                checkUserStatusAndLoadChannels(user);
+            } else { alert("Zəhmət olmasa ID yazın!"); }
+        }
+
          
          // --- 9. 🔥 SMART TV CANLI SSE (SMS QƏBUL VƏ AVTOMATİK MƏRKƏZLƏŞDİRMƏ SİGORTASI) ---
          (function() {

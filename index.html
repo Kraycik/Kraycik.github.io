@@ -2287,43 +2287,45 @@ function playTizenVideo(url) {
                 // --- 8. LIFECYCLE INITIALIZATION ---
         window.onload = function() {
             
-            // --- 🚀 MSX BLOKLAMASINI QIRAN QIZIL SƏTİR ---
-            if (typeof TVXApp !== 'undefined') {
-                TVXApp.init();
-                console.log("TVX Framework uğurla aktiv edildi.");
-            }
-            // ---------------------------------------------
+            window.onload = function() {
+    
+    // --- 🚀 Məhz bu hissə MSX-in o yüklənmə çarxını söndürür və sənin ID pəncərəni tam önə çıxarır ---
+    if (typeof TVXPlugin !== 'undefined' && TVXPlugin.ready) {
+        TVXPlugin.ready();
+    }
+    // ---------------------------------------------------------------------------------------------
 
-            if (window.tizen && window.tizen.tvinputdevice) {
-                try {
-                    tizen.tvinputdevice.registerKey("MediaPlayPause"); 
-                    tizen.tvinputdevice.registerKey("MediaPlay"); 
-                    tizen.tvinputdevice.registerKey("MediaPause");
-                } catch (e) { console.error(e); }
+    if (window.tizen && window.tizen.tvinputdevice) {
+        try {
+            tizen.tvinputdevice.registerKey("MediaPlayPause"); 
+            tizen.tvinputdevice.registerKey("MediaPlay"); 
+            tizen.tvinputdevice.registerKey("MediaPause");
+        } catch (e) { console.error(e); }
+    }
+    
+    if (typeof applyLanguage === 'function') applyLanguage();
+    
+    var savedUserId = localStorage.getItem("kur_iptv_user_id");
+    if (savedUserId && savedUserId.trim() !== "") {
+        var loginBtn = document.getElementById('btnLogin'); 
+        if (loginBtn) loginBtn.innerText = "Yoxlanılır...";
+        setTimeout(function() { checkUserStatusAndLoadChannels(savedUserId.trim()); }, 2000);
+    } else {
+        setTimeout(function() {
+            var splash = document.getElementById('splash'); 
+            var login = document.getElementById('login-screen');
+            if (splash) splash.style.display = 'none'; 
+            if (login) { 
+                login.style.display = 'flex'; 
+                setTimeout(function() { 
+                    var inp = document.getElementById('etUsername'); 
+                    if (inp) inp.focus(); 
+                }, 300); 
             }
-            
-            if (typeof applyLanguage === 'function') applyLanguage();
-            
-            var savedUserId = localStorage.getItem("kur_iptv_user_id");
-            if (savedUserId && savedUserId.trim() !== "") {
-                var loginBtn = document.getElementById('btnLogin'); 
-                if (loginBtn) loginBtn.innerText = "Yoxlanılır...";
-                setTimeout(function() { checkUserStatusAndLoadChannels(savedUserId.trim()); }, 2000);
-            } else {
-                setTimeout(function() {
-                    var splash = document.getElementById('splash'); 
-                    var login = document.getElementById('login-screen');
-                    if (splash) splash.style.display = 'none'; 
-                    if (login) { 
-                        login.style.display = 'flex'; 
-                        setTimeout(function() { 
-                            var inp = document.getElementById('etUsername'); 
-                            if (inp) inp.focus(); 
-                        }, 300); 
-                    }
-                }, 2000);
-            }
-        };
+        }, 2000);
+    }
+};
+
         
         function onLogin() {
             var user = document.getElementById('etUsername').value.trim();

@@ -1,15 +1,7 @@
 {
   "name": "KÜR IPTV",
   "version": "1.0.0",
-  "headline": "KÜR IPTV Smart Portal",
-  "logo": "https://kraycik.github.io/logo.png",
-  "icon": "https://kraycik.github.io/icon.png",
-  "menu": [
-    {
-      "title": "Bütün Canlı Kanallar",
-      "icon": "https://kraycik.github.io/icon.png",
-      "name": "Butun_Canli_Kanallar",
-      "action": "link:https://kraycik.github.io/index.html"
-    }
-  ]
+  "launcher": {
+    "parameter": "link:https://kraycik.github.io/index.html"
+  }
 }

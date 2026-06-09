@@ -239,17 +239,40 @@
     <!-- 3. SƏNİN ƏSAS BÖYÜK KODLARINI SAXLAYAN FAYLI ÇAĞIRIRIQ -->
     <script src="main.js"></script>
 
-         <script>
-    console.log("KÜR IPTV Portal işə salındı.");
-    
-    // MSX Framework-ünü mütləq işə salırıq ki, səhifə donsun deyə bloklanmasın
-    window.onload = function() {
-        if (typeof TVXApp !== 'undefined') {
-            TVXApp.init();
-        }
-        console.log("TVX Framework aktiv edildi.");
-    };
-</script>
+        <script>
+        console.log("KÜR IPTV Portal işə salındı.");
+        
+        // MSX Framework-ünü mütləq işə salırıq ki, səhifə donsun deyə bloklanmasın
+        window.onload = function() {
+            if (typeof TVXApp !== 'undefined') {
+                TVXApp.init();
+            }
+            console.log("TVX Framework aktiv edildi.");
+            
+            // Real TV-də Açılış və Login Zamanlayıcısı
+            if (window.tizen && window.tizen.tvinputdevice) {
+                try {
+                    tizen.tvinputdevice.registerKey("MediaPlayPause");
+                    tizen.tvinputdevice.registerKey("MediaPlay");
+                    tizen.tvinputdevice.registerKey("MediaPause");
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+            setTimeout(function() {
+                var splash = document.getElementById('splash');
+                var login = document.getElementById('login-screen');
+                if (splash) splash.style.display = 'none';
+                if (login) {
+                    login.style.display = 'flex';
+                    setTimeout(function() {
+                        var inputField = document.getElementById('etUsername');
+                        if (inputField) inputField.focus();
+                    }, 300);
+                }
+            }, 3000);
+        };
+
  <script>
       
           // --- PLEYER VƏ TAYMER DƏYİŞƏNLƏRİ (SƏNİN KOTLİN KODUNUN QARŞILIĞI) ---

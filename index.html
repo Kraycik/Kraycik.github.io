@@ -239,12 +239,13 @@
     <!-- 3. SƏNİN ƏSAS BÖYÜK KODLARINI SAXLAYAN FAYLI ÇAĞIRIRIQ -->
     <script src="main.js"></script>
 
-        <script>
-        // Media Station X (TV) mühitini televizorun tələb etdiyi rəsmi formatda başladırıq
+         <script>
+        // Media Station X (TV) mühitini rəsmi link formatında başladırıq
         if (typeof TVXApp !== 'undefined') {
             TVXApp.init({
-                // Xəta verən "kur_iptv_app" sözünü rəsmi standarta uyğun "menu:" linki ilə əvəzlədik:
-                id: "menu:https://Kraycik.github.io/menu.json",
+                // Bura bayaq "menu:" yazmışdıq və sistem HTML səhifəsini oxuya bilmirdi.
+                // İndi onu "link:" prefiksi ilə əvəzləyirik ki, birbaşa səhifəni təmiz açsın:
+                id: "link:https://kraycik.github.io/index.html",
                 name: "KÜR IPTV",
                 version: "1.0.0",
                 success: function() {

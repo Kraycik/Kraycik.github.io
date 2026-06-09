@@ -5,7 +5,7 @@
   "headline": "KÜR IPTV Smart Portal",
   "logo": "https://kraycik.github.io/logo.png",
   "icon": "https://kraycik.github.io/icon.png",
-  "parameter": "content:https://kraycik.github.io/index.html",
+  "parameter": "link:https://kraycik.github.io/index.html",
   "menu": [
     {
       "title": "Bütün Canlı Kanallar",

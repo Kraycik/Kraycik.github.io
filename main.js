@@ -168,23 +168,17 @@ var app = {
 };
 
 window.onload = function() { 
-    // 1. Sənin mövcud tətbiq məntiqini başladırıq
     app.init(); 
 
-    // 2. MSX (Media Station X) yoxlanışı və donmanın açılması
     if (typeof TVXServices !== 'undefined') {
         try {
-            // MSX xidmətlərini başladırıq
             TVXServices.init();
-            
-            // MSX-ə "hər şey hazırdır, donmanı aç və saytı göstər" siqnalı veririk
-            TVXServices.ready();
-            
-            console.log("MSX Framework uğurla başladıldı və donma açıldı.");
+            TVXServices.ready(); 
+            console.log("MSX donması uğurla açıldı.");
         } catch (e) {
-            console.error("MSX başladılarkən xəta yarandı:", e);
+            console.error("MSX xətası:", e);
         }
     }
 };
-function checkLogin() { app.checkLogin(); }
+
 

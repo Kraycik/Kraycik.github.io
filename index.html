@@ -240,22 +240,9 @@
     <script src="main.js"></script>
 
          <script>
-        // Media Station X (TV) mühitini rəsmi link formatında başladırıq
-        if (typeof TVXApp !== 'undefined') {
-            TVXApp.init({
-                // Bura bayaq "menu:" yazmışdıq və sistem HTML səhifəsini oxuya bilmirdi.
-                // İndi onu "link:" prefiksi ilə əvəzləyirik ki, birbaşa səhifəni təmiz açsın:
-                id: "link:https://kraycik.github.io/index.html",
-                name: "KÜR IPTV",
-                version: "1.0.0",
-                success: function() {
-                    console.log("MSX uğurla inteqrasiya olundu.");
-                },
-                error: function(error) {
-                    console.error("MSX xətası: ", error);
-                }
-            });
-        }
+        // HTML pəncərəsinin rəvan açılması və MSX-in çaşmaması üçün TVXApp.init funksiyasını tamamilə ləğv etdik.
+        // Tətbiq normal veb sayt kimi başlayacaq və sənin main.js faylın dərhal işə düşəcək.
+        console.log("KÜR IPTV Portal işə salındı.");
     </script>
  <script>
   

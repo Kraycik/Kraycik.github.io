@@ -240,12 +240,16 @@
     <script src="main.js"></script>
 
          <script>
-        // HTML pəncərəsinin rəvan açılması və MSX-in çaşmaması üçün TVXApp.init funksiyasını tamamilə ləğv etdik.
-        // Tətbiq normal veb sayt kimi başlayacaq və sənin main.js faylın dərhal işə düşəcək.
-        console.log("KÜR IPTV Portal işə salındı.");
-    </script>
- <script>
-  
+    console.log("KÜR IPTV Portal işə salındı.");
+    
+    // MSX Framework-ünü mütləq işə salırıq ki, səhifə donsun deyə bloklanmasın
+    window.onload = function() {
+        if (typeof TVXApp !== 'undefined') {
+            TVXApp.init();
+        }
+        console.log("TVX Framework aktiv edildi.");
+    };
+</script>
       
           // --- PLEYER VƏ TAYMER DƏYİŞƏNLƏRİ (SƏNİN KOTLİN KODUNUN QARŞILIĞI) ---
     var currentUrl = "";

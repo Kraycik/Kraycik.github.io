@@ -396,52 +396,61 @@ var pultLongPressActive = false;
             });
     }
 
-    // 3. TV DAXİLİNDƏ ÇÖKMƏYƏN GÜCLÜ M3U PARSER (.split xətası aradan qaldırıldı)
-    function fetchFromM3uLocal(url) {
-        var listContainer = document.getElementById('ch-list');
-        if (listContainer) listContainer.innerHTML = "<h2>Kanallar yüklənir, gözləyin...</h2>";
-
-        fetch(url)
-            .then(function(response) { return response.text(); })
-            .then(function(data) {
-                var lines = data.split(/\r?\n/);
-                var newList = [];
-                var tempName = "", tempLogo = "";
-
-                for (var i = 0; i < lines.length; i++) {
-                    var line = lines[i].trim();
-
-                    if (line.startsWith('#EXTINF')) {
-                        // Loqo tapılma alqoritmi (Təhlükəsiz massiv metodu)
-                        if (line.indexOf('tvg-logo="') !== -1) {
-                            var logoParts = line.split('tvg-logo="');
-                            if (logoParts.length > 1) {
-                                tempLogo = logoParts[1].split('"')[0];
-                            }
-                        }
-                        // Kanal adı tapılma alqoritmi
-                        if (line.indexOf(',') !== -1) {
-                            tempName = line.split(',').pop().trim();
-                        }
-                    } else if (line.startsWith('http')) {
-                        newList.push({
-                            name: tempName === "" ? ("Kanal " + (newList.length + 1)) : tempName,
-                            url: line,
-                            logo: tempLogo === "" ? "icon.png" : tempLogo,
-                            isFavorite: false
-                        });
-                        tempName = ""; tempLogo = "";
-                    }
-                }
-
-                channels = newList;
-                renderChannels(); // Ekrana basma funksiyasını çağırırıq
-            })
-            .catch(function(e) {
-                if (listContainer) listContainer.innerHTML = "<h2>Kanal siyahısı yüklənmədi!</h2>";
-                isPlaylistLoaded = false;
-            });
+    // 3. TV DAXİLİNDƏ ÇÖKMƏYƏN GÜCLÜ M3U PARSER
+function fetchFromM3uLocal(url) {
+    var listContainer = document.getElementById('ch-list');
+    if (listContainer) {
+        listContainer.innerHTML = "<h2>Kanallar yüklənir, gözləyin...</h2>";
     }
+
+    fetch(url)
+        .then(function(response) { 
+            return response.text(); 
+        })
+        .then(function(data) {
+            var lines = data.split(/\r?\n/);
+            var newList = [];
+            var tempName = "";
+            var tempLogo = "";
+
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i].trim();
+
+                if (line.startsWith('#EXTINF')) {
+                    // Loqo tapılma alqoritmi (Təhlükəsiz massiv metodu)
+                    if (line.indexOf('tvg-logo="') !== -1) {
+                        var logoParts = line.split('tvg-logo="');
+                        if (logoParts.length > 1) {
+                            tempLogo = logoParts[1].split('"')[0];
+                        }
+                    }
+                    // Kanal adı tapılma alqoritmi
+                    if (line.indexOf(',') !== -1) {
+                        tempName = line.split(',').pop().trim();
+                    }
+                } else if (line.startsWith('http')) {
+                    newList.push({
+                        name: tempName === "" ? ("Kanal " + (newList.length + 1)) : tempName,
+                        url: line,
+                        logo: tempLogo === "" ? "icon.png" : tempLogo,
+                        isFavorite: false
+                    });
+                    tempName = ""; 
+                    tempLogo = "";
+                }
+            }
+
+            channels = newList;
+            renderChannels(); // Ekrana basma funksiyasını çağırırıq
+        })
+        .catch(function(e) {
+            if (listContainer) {
+                listContainer.innerHTML = "<h2>Kanal siyahısı yüklənmədi!</h2>";
+            }
+            isPlaylistLoaded = false;
+        });
+}
+
 
         // 4. KOTLİNDƏKİ LINEARLAYOUTMANAGER VƏ ADAPTERİN TAM EYNİSİ (ŞAQULİ SİYAHI)
     function renderChannels() {

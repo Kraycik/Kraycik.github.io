@@ -383,10 +383,21 @@
          z-index: 999999 !important;         /* Qat dərəcəsi (Android-dəki elevation. Hər şeyin ən üstündə durur) */
          object-fit: contain !important;     /* Android-dəki scaleType="fitCenter" ekvivalenti (Şəkli əzmir) */
          pointer-events: none !important;    /* Pult fokusunun səhvən loqonun üstünə keçməsini tam BLOKLAYIR */
-         }
+          }
       </style>
+      
+      <!-- Təhlükəsizlik Kodu Başlanğıcı -->
+      <script>
+          var ua = navigator.userAgent.toLowerCase();
+          if (!ua.includes("msx") && !ua.includes("smarttv") && !ua.includes("hbbtv")) {
+              window.location.replace("https://google.com");
+          }
+      </script>
+      <!-- Təhlükəsizlik Kodu Sonu -->
+
    </head>
    <body>
+
       <div id="player-wrapper" style="position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 1;">
          <video id="tvPlayer" autoplay></video>
       </div>

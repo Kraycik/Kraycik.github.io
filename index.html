@@ -657,67 +657,97 @@
          }
          
                  // --- 3. FIREBASE ABUNƏ STATUSU VƏ M3U REPOSITORY ---
-         function checkUserStatusAndLoadChannels(code) {
-             console.log("Firebase qoşulması yoxlanılır: " + code);
-             var fullUrl = fbServerUrl + code + ".json";
-             
-             fetch(fullUrl)
-             .then(function(response) { return response.json(); })
-             .then(function(data) {
-                 if (!data) {
-                     showTvxToast("Sistemdə belə bir kod tapılmadı!");
-                     localStorage.removeItem("kur_iptv_user_id");
-                     var loginBtn = document.getElementById('btnLogin');
-                     if (loginBtn) loginBtn.innerText = "DAXİL OL";
-                     
-                     document.getElementById('splash').style.display = 'none';
-                     document.getElementById('login-screen').style.display = 'flex';
-                     var inputField = document.getElementById('etUsername');
-                     if (inputField) inputField.focus();
-                     return;
-                 }
-         
-                 var status = data.status || "active";
-                 var expireDate = data.expire_date || "";
-                 var role = data.role || "user";
-                 var m3uUrl = data.m3u_url || "";
-                 activeExpireDate = expireDate;
-         
-                 if (role.toLowerCase() !== "admin") {
-                     var today = new Date().toISOString().slice(0, 10);
-                     if (status === "blocked" || (expireDate !== "" && expireDate < today)) {
-                         showTvxToast("Hesabınızın vaxtı bitib və ya bloklanıb!");
-                         localStorage.removeItem("kur_iptv_user_id");
-                         handleLogout();
-                         return;
-                     }
-                 }
-         
-                 var splashEl = document.getElementById('splash');
-                 if (splashEl) splashEl.style.display = 'none';
-         
-                 document.getElementById('login-screen').style.display = 'none';
-                 document.getElementById('main-ui').style.display = 'block';
-                 document.getElementById('display-user-id').innerText = "ID: " + code;
-                 document.getElementById('hamburger').focus();
-         
-                 if (m3uUrl !== "") {
-                     if (!isPlaylistLoaded) {
-                         isPlaylistLoaded = true;
-                         fetchFromM3uLocal(m3uUrl);
-                     }
-                 } else {
-                     showTvxToast("Sizə m3u linki təyin edilməyib!");
-                     localStorage.removeItem("kur_iptv_user_id");
-                     handleLogout();
-                 }
-             })
-             .catch(function(error) {
-                 showTvxToast("Bağlantı xətası baş verdi!");
-                 document.getElementById('splash').style.display = 'none';
-                 document.getElementById('login-screen').style.display = 'flex';
-             });
-         }
+        function checkUserStatusAndLoadChannels(code) {
+    console.log("Firebase qoşulması yoxlanılır: " + code);
+    
+    // 🎯 MSX platformasından bu televizorun tamamilə unikal aparat ID-sini alırıq (Kotlin secure device id ekvivalenti)
+    var currentDeviceId = "web_user";
+    if (window.msxApp && typeof window.msxApp.getDeviceId === "function") {
+        currentDeviceId = window.msxApp.getDeviceId();
+    } else if (window.msx && typeof window.msx.getDeviceId === "function") {
+        currentDeviceId = window.msx.getDeviceId();
+    }
+
+    var fullUrl = fbServerUrl + code + ".json";
+    fetch(fullUrl)
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (!data) {
+                showTvxToast("Sistemdə belə bir kod tapılmadı!");
+                localStorage.removeItem("kur_iptv_user_id");
+                var loginBtn = document.getElementById('btnLogin');
+                if (loginBtn) loginBtn.innerText = "DAXİL OL";
+                document.getElementById('splash').style.display = 'none';
+                document.getElementById('login-screen').style.display = 'flex';
+                var inputField = document.getElementById('etUsername');
+                if (inputField) inputField.focus();
+                return;
+            }
+
+            // 🔒 [ KOTLİN MULTİ-CİHAZ ZİREHİ INTEGRASİYASI]
+            // Firebase bazanda hər bir istifadəçinin daxilində "device_id" sahəsini yoxlayırıq
+            var savedDeviceId = data.device_id || "";
+            var role = data.role || "user";
+
+            if (role.toLowerCase() !== "admin") {
+                // Əgər bu abunəçi ID-si hələ heç bir cihaza bağlanmayıbsa (İlk girişdir)
+                if (savedDeviceId === "") {
+                    // Bu cihazın ID-sini Firebase-ə sahib olaraq yazdırırıq (Klonlanmanın qarşısını almaq üçün)
+                    fetch(fbServerUrl + code + "/device_id.json", {
+                        method: "PUT",
+                        body: JSON.stringify(currentDeviceId)
+                    });
+                } 
+                // Əgər bazada artıq bir cihaz qeyd olunubsa VƏ o, indiki TV-nin ID-si ilə eyni DEYİLSƏ!
+                else if (savedDeviceId !== currentDeviceId) {
+                    alert("❌ GİRİŞ RƏDD EDİLDİ!\n\nBu abunəçi ID-si artıq başqa bir televizorda/cihazda aktivdir. Eyni anda iki cihazdan giriş qadağandır!");
+                    localStorage.removeItem("kur_iptv_user_id");
+                    handleLogout();
+                    return;
+                }
+            }
+
+            var status = data.status || "active";
+            var expireDate = data.expire_date || "";
+            var m3uUrl = data.m3u_url || "";
+            activeExpireDate = expireDate;
+
+            if (role.toLowerCase() !== "admin") {
+                var today = new Date().toISOString().slice(0, 10);
+                if (status === "blocked" || (expireDate !== "" && expireDate < today)) {
+                    showTvxToast("Hesabınızın vaxtı bitib və ya bloklanıb!");
+                    localStorage.removeItem("kur_iptv_user_id");
+                    handleLogout();
+                    return;
+                }
+            }
+
+            // Giriş uğurlu olduqda ana ekrana keçid
+            var splashEl = document.getElementById('splash');
+            if (splashEl) splashEl.style.display = 'none';
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('main-ui').style.display = 'block';
+            document.getElementById('display-user-id').innerText = "ID: " + code;
+            document.getElementById('hamburger').focus();
+
+            if (m3uUrl !== "") {
+                if (!isPlaylistLoaded) {
+                    isPlaylistLoaded = true;
+                    fetchFromM3uLocal(m3uUrl);
+                }
+            } else {
+                showTvxToast("Sizə m3u linki təyin edilməyib!");
+                localStorage.removeItem("kur_iptv_user_id");
+                handleLogout();
+            }
+        })
+        .catch(function(error) {
+            showTvxToast("Bağlantı xətası baş verdi!");
+            document.getElementById('splash').style.display = 'none';
+            document.getElementById('login-screen').style.display = 'flex';
+        });
+}
+
          
          function fetchFromM3uLocal(url) {
              var listContainer = document.getElementById('ch-list');
@@ -2241,9 +2271,30 @@ function playTizenVideo(url) {
          
          
          // --- 7. KÖMƏKÇİ FUNKSİYALAR ---
-         function resetSettings() { localStorage.clear(); alert("Bütün ayarlar sıfırlandı."); window.location.reload(); }
-         function handleLogout() { isPlaylistLoaded = false; channels = []; var mui = document.getElementById('main-ui'); if(mui) mui.style.display = 'none'; var ls = document.getElementById('login-screen'); if (ls) { ls.style.display = 'flex'; var inp = document.getElementById('etUsername'); if (inp) { inp.value = ""; inp.focus(); } } }
-         function closeStatusModal() { var modal = document.getElementById('status-modal') || document.getElementById('adminMessageModal'); if (modal) modal.style.display = "none"; var actBtn = document.getElementById('btn-active-period'); if (actBtn) actBtn.focus(); }
+         function resetSettings() {
+    // Bütün lokal və sessiya yaddaşını silirik
+    localStorage.clear();
+    sessionStorage.clear();
+    
+    alert("Bütün ayarlar sıfırlandı. Tətbiq yenidən başladılır.");
+    
+    // Media Station X tətbiqini kökündən yenidən başladırıq (ID ekranı gəlsin deyə)
+    if (window.msxApp && window.msxApp.reload) {
+        window.msxApp.reload();
+    } else if (window.msx && window.msx.reload) {
+        window.msx.reload();
+    } else {
+        window.location.href = window.location.origin + window.location.pathname + "?mode=tvapp";
+    }
+}
+
+// Düyməni klik hadisəsinə bağlayırıq (Kodu asinxron bərpa etmək üçün)
+document.addEventListener('DOMContentLoaded', function() {
+    var resetBtn = document.getElementById('btn-reset');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', resetSettings);
+    }
+});
          
          // --- HARDWARE ZAPPİNG ALQORİTMİ ---
          function handleZappingDigit(digit) {
@@ -2299,22 +2350,46 @@ function playTizenVideo(url) {
              }
          });
          
-         // --- 8. LIFECYCLE INITIALIZATION ---
+                 // --- 8. LIFECYCLE INITIALIZATION ---
          window.onload = function() {
              if (window.tizen && window.tizen.tvinputdevice) {
                  try {
-                     tizen.tvinputdevice.registerKey("MediaPlayPause"); tizen.tvinputdevice.registerKey("MediaPlay"); tizen.tvinputdevice.registerKey("MediaPause");
+                     tizen.tvinputdevice.registerKey("MediaPlayPause"); 
+                     tizen.tvinputdevice.registerKey("MediaPlay"); 
+                     tizen.tvinputdevice.registerKey("MediaPause");
                  } catch (e) { console.error(e); }
              }
+             
              if (typeof applyLanguage === 'function') applyLanguage();
+             
+             // 🎯 [ AYARLARIN SIFIRLANMASI DÜYMƏSİ SİĞORTASI]
+             // Ayarları sıfırla düyməsini pult və klik üçün burada tam olaraq aktiv edirik
+             var resetBtn = document.getElementById('btn-reset');
+             if (resetBtn) {
+                 resetBtn.addEventListener('click', function() {
+                     resetSettings();
+                 });
+             }
+
              var savedUserId = localStorage.getItem("kur_iptv_user_id");
              if (savedUserId && savedUserId.trim() !== "") {
-                 var loginBtn = document.getElementById('btnLogin'); if (loginBtn) loginBtn.innerText = "Yoxlanılır...";
-                 setTimeout(function() { checkUserStatusAndLoadChannels(savedUserId.trim()); }, 2000);
+                 var loginBtn = document.getElementById('btnLogin'); 
+                 if (loginBtn) loginBtn.innerText = "Yoxlanılır...";
+                 setTimeout(function() { 
+                     checkUserStatusAndLoadChannels(savedUserId.trim()); 
+                 }, 2000);
              } else {
                  setTimeout(function() {
-                     var splash = document.getElementById('splash'); var login = document.getElementById('login-screen');
-                     if (splash) splash.style.display = 'none'; if (login) { login.style.display = 'flex'; setTimeout(function() { var inp = document.getElementById('etUsername'); if (inp) inp.focus(); }, 300); }
+                     var splash = document.getElementById('splash'); 
+                     var login = document.getElementById('login-screen');
+                     if (splash) splash.style.display = 'none'; 
+                     if (login) { 
+                         login.style.display = 'flex'; 
+                         setTimeout(function() { 
+                             var inp = document.getElementById('etUsername'); 
+                             if (inp) inp.focus(); 
+                         }, 300); 
+                     }
                  }, 2000);
              }
          };
@@ -2322,10 +2397,15 @@ function playTizenVideo(url) {
          function onLogin() {
              var user = document.getElementById('etUsername').value.trim();
              if (user) {
-                 var loginBtn = document.getElementById('btnLogin'); if (loginBtn) loginBtn.innerText = "Yoxlanılır...";
-                 localStorage.setItem("kur_iptv_user_id", user); checkUserStatusAndLoadChannels(user);
-             } else { alert("Zəhmət olmasa ID yazın!"); }
+                 var loginBtn = document.getElementById('btnLogin'); 
+                 if (loginBtn) loginBtn.innerText = "Yoxlanılır...";
+                 localStorage.setItem("kur_iptv_user_id", user); 
+                 checkUserStatusAndLoadChannels(user);
+             } else { 
+                 alert("Zəhmət olmasa ID yazın!"); 
+             }
          }
+
          
          // --- 9. 🔥 SMART TV CANLI SSE (SMS QƏBUL VƏ AVTOMATİK MƏRKƏZLƏŞDİRMƏ SİGORTASI) ---
          (function() {

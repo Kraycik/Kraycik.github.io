@@ -1643,39 +1643,80 @@ function playTizenVideo(url) {
                  var infoPanel = document.getElementById('infoPanel'); if (infoPanel) infoPanel.style.display = "none";
              }
              
-             // KEYCODE 10009 - SAMSUNG RETURN BACK
+                          // KEYCODE 10009 - SAMSUNG RETURN BACK
              if (currentKeyCode === 10009) {
                  e.preventDefault(); e.stopPropagation();
+                 
+                 // 📺 VƏZİYYƏT A: Əgər hal-hazırda TAM EKRANDA VİDEO OYNAYIRSA (Playlist gizlidirsə)
                  var isVideoFullScreen = !mainUiEl || mainUiEl.style.display === "none";
+                 var wrapperEl = document.getElementById('player-wrapper');
+                 var rightDrawerEl = document.getElementById('right-drawer');
                  
                  if (isVideoFullScreen) {
-                     if (window.webapis && window.webapis.avplay) { try { webapis.avplay.stop(); } catch (err) {} }
+                     console.log("KÜR IPTV: Videodan çıxılır, əsas playlistə rəvan qayıdış...");
+                     
+                     // 1. Hardware pleyer dayandırılır (Çöküş və səs qarışması sığortası)
+                     if (window.webapis && window.webapis.avplay) { 
+                         try { 
+                             webapis.avplay.stop(); 
+                             webapis.avplay.close();
+                         } catch (err) {} 
+                     } else {
+                         var tvPlayerEl = document.getElementById('tv-player');
+                         if (tvPlayerEl) {
+                             tvPlayerEl.pause();
+                             tvPlayerEl.src = "";
+                             tvPlayerEl.load();
+                         }
+                     }
+                     
+                     // 2. Pleyer pəncərəsini və sağ menyunu tam gizlədirik
+                     if (wrapperEl) wrapperEl.style.display = "none";
+                     if (rightDrawerEl) {
+                         rightDrawerEl.style.right = "-450px";
+                         rightDrawerEl.style.display = "none";
+                         rightDrawerEl.classList.remove('open');
+                     }
+                     
+                     // 3. Əsas UI elementlərini və kanal siyahısını ekranda bərpa edirik
                      if (mainUiEl) mainUiEl.style.display = "block";
-                     
                      var subContainersBack = ['main-content', 'fragment-channels', 'ch-list'];
-                     subContainersBack.forEach(function(id) { var el = document.getElementById(id); if (el) el.style.display = "block"; });
-                     document.documentElement.style.background = "#121212"; document.body.style.background = "#121212";
+                     subContainersBack.forEach(function(id) { 
+                         var el = document.getElementById(id); 
+                         if (el) el.style.display = "block"; 
+                     });
                      
+                     document.documentElement.style.background = "#121212"; 
+                     document.body.style.background = "#121212";
+                     
+                     // 4. 🎯 KOTLİN TİPLİ FOKUS SIĞORTASI: Pultu sonuncu baxılan kanala qaytarırıq
                      setTimeout(function() {
                          var currentIdx = channels.findIndex(function(c){ return c.url === currentUrl; });
                          var targetCard = (currentIdx !== -1) ? document.getElementById('ch_' + currentIdx) : document.getElementById('ch_0');
-                         if (targetCard) targetCard.focus();
-                     }, 60);
+                         if (targetCard) {
+                             targetCard.focus();
+                             targetCard.scrollIntoView({ block: "center", behavior: "auto" });
+                         }
+                     }, 100);
                      return false;
                  }
                  
+                 // 📱 VƏZİYYƏT B: Əgər video oynamırsa, sadəcə sol yan menyu (Drawer) açıqdırsa
                  if (drawer && drawer.classList.contains('open')) {
                      drawer.classList.remove('open');
-                     var hamburger = document.getElementById('hamburger'); if (hamburger) hamburger.focus(); return false;
+                     var hamburger = document.getElementById('hamburger'); 
+                     if (hamburger) hamburger.focus(); 
+                     return false;
                  } 
                  
+                 // 🚪 VƏZİYYƏT C: Əgər tam əsas ekrandadısa və təkrar BACK basılırsa, tətbiqdən çıxış
                  if (window.tizen && tizen.application) {
                      try { tizen.application.getCurrentApplication().exit(); } catch(err) { window.close(); }
                  } else { window.close(); }
                  return false;
              }
          
-               // FULLSCREEN VIDEO REJİMİ (KÜR IPTV: PROFESSIONAL NAVİQASİYA MATRİSİ - TAM SAĞLAM)
+             // FULLSCREEN VIDEO REJİMİ (KÜR IPTV: PROFESSIONAL NAVİQASİYA MATRİSİ - TAM SAĞLAM)
              var wrapper = document.getElementById('player-wrapper');
              var rightDrawer = document.getElementById('right-drawer');
              var isMenuOpen = rightDrawer && (rightDrawer.style.right === "0px" || rightDrawer.classList.contains('open'));
@@ -1715,6 +1756,7 @@ function playTizenVideo(url) {
                      return false;
                  }
              }
+
          
              // DRAWER NAVİQASİYASI (SƏNİN ORİJİNAL KODUN - EYNİLƏ QORUNDU)
              if (drawer && drawer.classList.contains('open') && active && active.classList.contains('nav-item')) {
@@ -2470,3 +2512,4 @@ document.addEventListener('DOMContentLoaded', function() {
       <img id="my-logo" src="my-logo.png" onerror="console.log('❌ Loqo şəkli qovluqda tapılmadı!')" alt="Logo">
    </head>
    <body>
+         

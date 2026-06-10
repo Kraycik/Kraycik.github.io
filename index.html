@@ -384,16 +384,23 @@
          object-fit: contain !important;     /* Android-dəki scaleType="fitCenter" ekvivalenti (Şəkli əzmir) */
          pointer-events: none !important;    /* Pult fokusunun səhvən loqonun üstünə keçməsini tam BLOKLAYIR */
           }
+           }
       </style>
       
-      <!-- Təhlükəsizlik Kodu Başlanğıcı -->
+      <!-- Yeni və Dəqiq Təhlükəsizlik Kodu -->
       <script>
-          var ua = navigator.userAgent.toLowerCase();
-          if (!ua.includes("msx") && !ua.includes("smarttv") && !ua.includes("hbbtv")) {
-              window.location.replace("https://google.com");
-          }
+          // Səhifə tam yüklənəndən 1 saniyə sonra MSX-i yoxlayır
+          window.addEventListener('load', function() {
+              // Həm pəncərədə MSX obyektini, həm də linkdəki xüsusi parametrləri yoxlayır
+              var isMSX = window.msxApp || window.msx || window.location.search.includes('msx') || navigator.userAgent.toLowerCase().includes('msx');
+              
+              // Əgər rəsmi Media Station X mühiti tapılmadısa
+              if (!isMSX) {
+                  // Dərhal brauzer istifadəçisini Google-a yönləndir
+                  window.location.replace("https://google.com");
+              }
+          });
       </script>
-      <!-- Təhlükəsizlik Kodu Sonu -->
 
    </head>
    <body>

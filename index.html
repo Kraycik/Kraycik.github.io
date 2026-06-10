@@ -37,57 +37,12 @@
         .fragment { display: none; width: 100%; height: calc(100vh - 80px); overflow-y: auto; box-sizing: border-box; padding: 40px; }
         .fragment.active { display: block; }
 
-        /* SƏNİN ADAPTERƏ UYĞUN KANAL SİYAHISI */
-        #ch-list {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            padding: 10px;
-            width: 450px;
-            height: calc(100vh - 80px);
-            overflow-y: auto;
-            background-color: #1a1a1a;
-            box-sizing: border-box;
-        }
-
-        .channel-card {
-            background: transparent;
-            padding: 12px 15px;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            border: 2px solid transparent;
-            outline: none;
-            transition: all 0.2s ease;
-            color: #FFFFFF;
-        }
-
-        /* Fokus effekti (Sarı yazı və Mərcedes stili böyümə) */
-        .channel-card:focus {
-            border-color: #2196F3;
-            background-color: rgba(33, 150, 243, 0.27); /* #442196F3 rənginin CSS qarşılığı */
-            transform: scale(1.03);
-            color: #FFFF00 !important; /* Yazı mütləq Sarı olacaq */
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-        }
-
-        .channel-card img {
-            width: 45px;
-            height: 45px;
-            object-fit: contain;
-            margin-right: 15px;
-            border-radius: 4px;
-        }
-
-        .channel-card div {
-            font-size: 20px;
-            font-weight: bold;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
+        /* CHANNELS GRID (YENİ) */
+        #ch-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; padding: 20px; }
+        .channel-card { background: #252525; padding: 25px; border-radius: 15px; text-align: center; cursor: pointer; border: 3px solid transparent; outline: none; transition: 0.2s; }
+        .channel-card:focus { border-color: var(--primary); transform: scale(1.05); background: #333; }
+        .channel-card img { width: 150px; height: 150px; object-fit: contain; margin-bottom: 15px; border-radius: 10px; }
+        .channel-card div { font-size: 22px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
         /* SETTINGS STYLE */
         #settings-fragment { background: #F5F5F5; color: #333; }
@@ -317,65 +272,44 @@
         checkUserStatusAndLoadChannels(inputCode);
     }
 
-    // 7. FİREBASE YOXLAMA VƏ ADMİN MEKTUBU FUNKSİYASI
-function checkUserStatusAndLoadChannels(code) {
-    console.log("Firebase-dən bu kod axtarılır: " + code);
-    const userRef = database.ref(code);
+    // 7. FİREBASE YOXLAMA FUNKSİYASI
+    function checkUserStatusAndLoadChannels(code) {
+        console.log("Firebase-dən bu kod axtarılır: " + code);
+        const userRef = database.ref(code);
 
-    // .once əvəzinə .on saxlayırıq ki, həm statusu, həm də mesajı canlı izləyək
-    userRef.on('value', (snapshot) => {
-        if (snapshot.exists()) {
-            const data = snapshot.val();
-            console.log("İstifadəçi tapıldı! Gələn data:", data);
+        userRef.on('value', (snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                console.log("İstifadəçi tapıldı! Gələn data:", data);
 
-            const status = data.status || "active";
-            const expireDate = data.expire_date || "";
-            const role = data.role || "user";
-            const m3uUrl = data.m3u_url || "";
-            const adminMektubu = data.message || ""; // Sənin istədiyin məktub sahəsi
+                const status = data.status || "active";
+                const expireDate = data.expire_date || "";
+                const role = data.role || "user";
+                const m3uUrl = data.m3u_url || "";
 
-            // 1. ADMİN MEKTUBU YOXLANIŞI (Hər an gələ bilər)
-            if (adminMektubu !== "") {
-                // Ekranda mesajı göstəririk
-                alert("🔔 ADMİN BİLDİRİŞİ:\n\n" + adminMektubu);
-                
-                // Mesaj oxunduqdan sonra bazadan silirik ki, təkrar çıxmasın
-                userRef.child("message").set(""); 
-            }
-
-            // 2. STATUS VƏ VAXT YOXLANIŞI
-            if (role.toLowerCase() !== "admin") {
-                const today = new Date().toISOString().slice(0, 10);
-                if (status === "blocked" || (expireDate !== "" && expireDate < today)) {
-                    alert("Hesabınızın vaxtı bitib və ya bloklanıb!");
-                    userRef.off(); // Dinləyicini söndürürük
-                    handleLogout();
-                    return;
+                if (role.toLowerCase() !== "admin") {
+                    const today = new Date().toISOString().slice(0, 10);
+                    if (status === "blocked" || (expireDate !== "" && expireDate < today)) {
+                        alert("Hesabınızın vaxtı bitib və ya bloklanıb!");
+                        handleLogout();
+                        return;
+                    }
                 }
-            }
 
-            // 3. KANAL YÜKLƏMƏ MƏNTİQİ
-            if (m3uUrl !== "") {
-                // Əgər kanallar hələ yüklənməyibsə, yüklə (hər dəfə təkrarlanmasın deyə)
-                if (typeof isPlaylistLoaded === 'undefined' || !isPlaylistLoaded) {
+                if (m3uUrl !== "") {
                     console.log("M3U Linki tapıldı: " + m3uUrl);
                     fetchFromM3uLocal(m3uUrl);
-                    window.isPlaylistLoaded = true; // Yükləndi işarəsini qoyuruq
+                } else {
+                    alert("Sizə m3u linki təyin edilməyib!");
+                    handleLogout();
                 }
             } else {
-                alert("Sizə m3u linki təyin edilməyib!");
-                userRef.off();
+                console.log("Belə bir istifadəçi kodu Firebase-də yoxdur!");
+                alert("Sistemdə belə bir kod tapılmadı!");
                 handleLogout();
             }
-
-        } else {
-            console.log("Belə bir istifadəçi kodu Firebase-də yoxdur!");
-            alert("Sistemdə belə bir kod tapılmadı!");
-            handleLogout();
-        }
-    });
-}
-
+        });
+    }
 
     // ANDROİD KODUNDAN BİRE-BİR TƏRCÜMƏ EDİLMİŞ GÜCLÜ PARSER
     async function fetchFromM3uLocal(url) {
@@ -454,17 +388,19 @@ function checkUserStatusAndLoadChannels(code) {
     } // fetchFromM3uLocal funksiyasının sonu
 
     // KANALLARI EKRANA (GRID-Ə) ÇIXARAN ƏSAS FUNKSİYA
-    // KANALLARI EKRANA BASTIQDA PİN YOXLANIŞI EDƏN FUNKSİYA
     function renderChannels() {
         var list = document.getElementById('ch-list');
-        if (!list) return;
+        if (!list) {
+            console.error("Xəta: ch-list id-li grid tapılmadı!");
+            return;
+        }
 
-        list.innerHTML = "";
+        list.innerHTML = ""; // Köhnə boşluğu təmizləyirik
 
         channels.forEach(function(ch, index) {
             var card = document.createElement('div');
             card.className = 'channel-card';
-            card.tabIndex = 0;
+            card.tabIndex = 0; // Pult üçün fokuslanma
             card.setAttribute('data-index', index);
 
             var logoSrc = ch.logo || "icon.png";
@@ -472,50 +408,16 @@ function checkUserStatusAndLoadChannels(code) {
                 '<img src="' + logoSrc + '" onerror="this.src=\'icon.png\'">' +
                 '<div>' + ch.name + '</div>';
 
-            // 🛑 BAX ƏSAS MƏNTİQ BURADADIR 🛑
             card.onclick = function() {
-                // 1. Giriş xanasını hər dəfə mütləq sıfırlayırıq
-                const pinField = document.getElementById('edtDialogPin');
-                if (pinField) pinField.value = "";
-
-                // 2. Brauzerin lokal yaddaşında bu kanal üçün PIN varmı?
-                let savedPin = localStorage.getItem("PIN_" + ch.url);
-
-                if (savedPin && savedPin !== "") {
-                    // Əgər PIN varsa, dialoq pəncərəsini açırıq
-                    const pinModal = document.getElementById('pin-modal');
-                    if (pinModal) {
-                        pinModal.style.display = 'flex';
-                        document.getElementById('txtDialogTitle').innerText = "🔒 PIN Kodunu Daxil Edin";
-
-                        setTimeout(() => document.getElementById('edtDialogPin').focus(), 100);
-
-                        // "Təsdiqlə" düyməsinin işini yalnız bu kanalın yoxlanışına bağlayırıq
-                        document.getElementById('btnDialogUnlock').onclick = function() {
-                            const pinInput = document.getElementById('edtDialogPin').value.trim();
-
-                            if (pinInput === savedPin) {
-                                pinModal.style.display = 'none';
-                                // Kod düzdürsə kanalı açırıq
-                                if (typeof playVideo === "function") {
-                                    playVideo(ch.url);
-                                }
-                            } else {
-                                alert("Səhv PIN kodu daxil etdiniz!");
-                                document.getElementById('edtDialogPin').value = "";
-                            }
-                        };
-                    }
-                } else {
-                    // Əgər kanalda PIN yoxdursa, BİRBAŞA açırıq!
-                    if (typeof playVideo === "function") {
-                        playVideo(ch.url);
-                    }
+                if (typeof playVideo === "function") {
+                    playVideo(ch.url);
+                } else if (typeof playChannel === "function") {
+                    playChannel(ch.url);
                 }
-            }; // onclick sonu
+            };
 
             list.appendChild(card);
-        }); // forEach sonu
+        });
 
         if (channels.length > 0) {
             setTimeout(function() {
@@ -523,9 +425,7 @@ function checkUserStatusAndLoadChannels(code) {
                 if (firstCard) firstCard.focus();
             }, 300);
         }
-    }
-
-
+    } // renderChannels funksiyasının sonu
 </script>
 
 
@@ -956,314 +856,6 @@ function checkUserStatusAndLoadChannels(code) {
                 }
             };
         }
-    });
-</script>
-<!-- ======================================================= -->
-<!-- 1. KANAL SEÇİMLƏRİ (Context Menu) - HTML QATI -->
-<!-- ======================================================= -->
-<div id="context-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 20000; justify-content: center; align-items: center;">
-    <div style="width: 350px; background: white; border-radius: 4px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
-
-        <!-- Başlıq -->
-        <div id="context-title" style="font-size: 18px; font-weight: bold; color: #333; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">Kanal Adı</div>
-
-        <!-- Menyular (Android-dəki kimi) -->
-        <div class="ctx-item" tabindex="0" onclick="ctxSearch()" style="padding: 12px; color: #333; font-size: 16px; cursor: pointer; outline: none; border-radius: 4px;">🔍 Kanal Axtar</div>
-        <div class="ctx-item" tabindex="0" onclick="ctxPin()" style="padding: 12px; color: #333; font-size: 16px; cursor: pointer; outline: none; border-radius: 4px;">📌 PIN (Kilid)</div>
-        <div class="ctx-item" tabindex="0" onclick="ctxReset()" style="padding: 12px; color: #333; font-size: 16px; cursor: pointer; outline: none; border-radius: 4px;">🔄 Sıfırla</div>
-        <div class="ctx-item" tabindex="0" onclick="closeContextMenu()" style="padding: 12px; color: #E74C3C; font-size: 16px; cursor: pointer; outline: none; border-radius: 4px; font-weight: bold;">❌ Bağla</div>
-
-    </div>
-</div>
-
-<style>
-    .ctx-item:focus {
-        background-color: rgba(33, 150, 243, 0.2) !important;
-        color: #2196F3 !important;
-        font-weight: bold;
-    }
-</style>
-
-
-<!-- ======================================================= -->
-<!-- 2. SƏNİN ANDROID "dialog_pin" DİZAYNININ BİRE-BİR EYNİSİ -->
-<!-- ======================================================= -->
-<div id="pin-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 21000; justify-content: center; align-items: center;">
-
-    <!-- LinearLayout: width="320dp", background="#1C1C1C", padding="25dp" -->
-    <div style="width: 320px; background-color: #1C1C1C; padding: 25px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; box-sizing: border-box; text-align: center;">
-
-        <!-- txtDialogTitle: textStyle="bold", textSize="22sp", textColor="#FFD700" -->
-        <div id="txtDialogTitle" style="font-size: 22px; font-weight: bold; color: #FFD700; margin-bottom: 10px;">
-            PIN Kilidi
-        </div>
-
-        <!-- Hint TextView: textColor="#FFFFFF", textSize="16sp" -->
-        <div style="font-size: 16px; color: #FFFFFF; margin-bottom: 20px;">
-            Davam etmək üçün 4 rəqəmli PIN daxil edin.
-        </div>
-
-        <!-- edtDialogPin: maxLength="4", textColor="#000000" -->
-        <input type="password" id="edtDialogPin" maxlength="4" style="width: 100%; height: 50px; background-color: #FFFFFF; border: none; border-radius: 4px; padding: 0; text-align: center; font-size: 20px; color: #000000; box-sizing: border-box; outline: none; margin-bottom: 20px;" placeholder="****" tabindex="1">
-
-        <!-- btnDialogUnlock: backgroundTint="#6200EE", textColor="#FFFFFF" -->
-        <button id="btnDialogUnlock" style="width: 100%; height: 45px; background-color: #6200EE; color: #FFFFFF; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; outline: none;" tabindex="2">
-            Təsdiqlə
-        </button>
-
-    </div>
-</div>
-
-
-<!-- ======================================================= -->
-<!-- 3. JAVASCRIPT KODLARI -->
-<!-- ======================================================= -->
-<script>
-    // Menyunu açmaq funksiyası
-    function openContextMenu(channel) {
-        document.getElementById('context-title').innerText = "⚙️ " + channel.name;
-        document.getElementById('context-modal').style.display = 'flex';
-
-        // İlk menyuya fokusu veririk
-        setTimeout(() => {
-            const firstItem = document.querySelector('.ctx-item');
-            if (firstItem) firstItem.focus();
-        }, 100);
-    }
-
-    // Menyunu bağlamaq funksiyası
-    function closeContextMenu() {
-        document.getElementById('context-modal').style.display = 'none';
-    }
-
-    // 1. KANAL AXTARIŞI FUNKSİYASI (Android-dəki showSearchDialog-un eynisi)
-    function ctxSearch() {
-        closeContextMenu(); // Əvvəlcə balaca menyunu bağlayırıq
-
-        let query = prompt("Axtardığınız kanalın adını yazın:");
-        if (query === null) return; // Ləğv edibsə dayandır
-
-        console.log("Axtarış edilir: " + query);
-
-        // Siyahını süzgəcdən keçiririk
-        let filtered = channels.filter(ch => ch.name.toLowerCase().includes(query.toLowerCase()));
-
-        // Kanalları ekrana basan funksiyanı çağırırıq (Bizim yaratdığımız funksiya)
-        if (typeof renderChannels === "function") {
-            // Müvəqqəti olaraq channels-i axtarış nəticəsi ilə əvəz edirik
-            let originalChannels = channels;
-            channels = filtered;
-            renderChannels();
-            channels = originalChannels; // Əsli yerində qalsın
-        }
-    }
-
-    // 2. PIN KİLİDİ FUNKSİYASI (Sənin gətirdiyin yeni XML pəncərəni açır)
-    var currentCtxChannel = null; // Menyu açılarkən hansı kanal olduğunu yadda saxlayırıq
-
-    function ctxPin() {
-        closeContextMenu();
-
-        let active = document.activeElement;
-        let index = active.getAttribute('data-index');
-        currentCtxChannel = channels[index];
-
-        const pinModal = document.getElementById('pin-modal');
-        if (pinModal) {
-            pinModal.style.display = 'flex'; // Sənin qara pəncərəni açırıq
-            document.getElementById('edtDialogPin').value = ""; // Təmizləyirik
-
-            // Başlığı ilkin vəziyyətinə gətiririk
-            document.getElementById('txtDialogTitle').innerText = "PIN Kilidi";
-
-            setTimeout(() => {
-                document.getElementById('edtDialogPin').focus();
-            }, 100);
-        }
-    }
-
-    // 3. SIFIRLAMA FUNKSİYASI (Siyahını təmizləyib əvvəlki halına gətirir)
-    function ctxReset() {
-        closeContextMenu();
-        console.log("Siyahı sıfırlanır...");
-
-        // Siyahını təzədən bərpa etmək üçün
-        if (typeof renderChannels === "function") {
-            renderChannels();
-        }
-    }
-
-    // Klaviaturadan "M" və ya Menyu düyməsini dinləyirik
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'm' || e.key === 'M' || e.keyCode === 77) {
-            var active = document.activeElement;
-
-            // Əgər hansısa kanalın üzərindəyiksə
-            if (active && active.classList.contains('channel-card')) {
-                var index = active.getAttribute('data-index');
-
-                // Qlobal channels massivindən kanalı tapırıq
-                if (typeof channels !== 'undefined' && channels[index]) {
-                    var channel = channels[index];
-                    openContextMenu(channel);
-                }
-            }
-        }
-    });
-
-    // 🛑 BURA ÇOX ÖNƏMLİDİR: KANALLARI EKRANA BASTIQDA PİN YOXLANIŞI EDƏN FUNKSİYA 🛑
-    function renderChannels() {
-        var list = document.getElementById('ch-list');
-        if (!list) return;
-
-        list.innerHTML = ""; // Köhnə boşluğu təmizləyirik
-
-        channels.forEach(function(ch, index) {
-            var card = document.createElement('div');
-            card.className = 'channel-card';
-            card.tabIndex = 0;
-            card.setAttribute('data-index', index);
-
-            var logoSrc = ch.logo || "icon.png";
-            card.innerHTML =
-                '<img src="' + logoSrc + '" onerror="this.src=\'icon.png\'">' +
-                '<div>' + ch.name + '</div>';
-
-            // KANALA KLİKLƏYƏNDƏ PİN YOXLAMA MƏNTİQİ (HƏMİŞƏ İŞLƏK)
-            card.onclick = function() {
-                // 1. Sənin istədiyin təmizləmə əmri:
-                const pinField = document.getElementById('edtDialogPin');
-                if (pinField) pinField.value = "";
-
-                // 2. Brauzerin lokal yaddaşına baxırıq
-                let savedPin = localStorage.getItem("PIN_" + ch.url);
-
-                if (savedPin) {
-                    const pinModal = document.getElementById('pin-modal');
-                    if (pinModal) {
-                        pinModal.style.display = 'flex';
-                        document.getElementById('txtDialogTitle').innerText = "🔒 PIN Kodunu Daxil Edin";
-
-                        setTimeout(() => document.getElementById('edtDialogPin').focus(), 100);
-
-                        // Düymənin işini yoxlama üçün dəyişirik
-                        document.getElementById('btnDialogUnlock').onclick = function() {
-                            const pinInput = document.getElementById('edtDialogPin').value.trim();
-
-                            if (pinInput === savedPin) {
-                                pinModal.style.display = 'none';
-                                if (typeof playVideo === "function") {
-                                    playVideo(ch.url);
-                                } else if (typeof playChannel === "function") {
-                                    playChannel(ch.url);
-                                }
-                            } else {
-                                alert("Səhv PIN kodu daxil etdiniz!");
-                                document.getElementById('edtDialogPin').value = "";
-                            }
-                        };
-                    }
-                } else {
-                    // PIN yoxdursa birbaşa açılsın
-                    if (typeof playVideo === "function") {
-                        playVideo(ch.url);
-                    } else if (typeof playChannel === "function") {
-                        playChannel(ch.url);
-                    }
-                }
-            }; // card.onclick bağlanışı
-
-            list.appendChild(card);
-        }); // channels.forEach bağlanışı
-
-        if (channels.length > 0) {
-            setTimeout(function() {
-                var firstCard = list.querySelector('.channel-card');
-                if (firstCard) firstCard.focus();
-            }, 300);
-        }
-    } // renderChannels bağlanışı
-
-    // Pəncərədəki "Təsdiqlə" düyməsinin İLKİN (PIN yazma) işləməsi
-    document.addEventListener('DOMContentLoaded', () => {
-        const btnUnlock = document.getElementById('btnDialogUnlock');
-        if (btnUnlock) {
-            btnUnlock.onclick = function() {
-                const pinInput = document.getElementById('edtDialogPin').value.trim();
-
-                if (pinInput.length === 4) {
-                    if (currentCtxChannel) {
-                        localStorage.setItem("PIN_" + currentCtxChannel.url, pinInput);
-                        alert("PIN yadda saxlanıldı!");
-                    }
-                    document.getElementById('pin-modal').style.display = 'none';
-                } else {
-                    alert("PIN 4 rəqəmli olmalıdır!");
-                }
-            };
-        }
-    });
-</script>
-<script>
-    // Lazımi elementləri götürürük
-    const channelList = document.getElementById('ch-list');
-    const cards = document.querySelectorAll('.channel-card');
-
-    let isPlaylistVisible = true; // Siyahının ekranda olub-olmaması vəziyyəti
-
-    // Pultun düymələrini izləyirik
-    document.addEventListener('keydown', function(event) {
-        // Hazırda fokusda olan kanalı tapırıq
-        const currentFocus = document.activeElement;
-
-        // Düymə kodlarını yoxlayırıq
-        switch(event.keyCode || event.which) {
-
-            case 13: // ----------------- PULTDA "OK" DÜYMƏSİ -----------------
-
-                // Əgər siyahı ekrandadırsa və fokus hansısa kanalın üzərindədirsə
-                if (isPlaylistVisible && currentFocus.classList.contains('channel-card')) {
-
-                    // 1. Kanalı işə salırıq (Hələlik konsolda göstərir)
-                    console.log("Kanal açıldı: " + currentFocus.innerText);
-
-                    // 2. Playlisti bağlayırıq (Ekranda təkcə video qalsın deyə)
-                    channelList.style.display = 'none';
-                    isPlaylistVisible = false;
-
-                    // 3. Fokusun itməməsi üçün əsas səhifəni fokusda saxlayırıq
-                    document.body.focus();
-                }
-                // Əgər kanal oynayırsa (siyahı bağlıdırsa) və təzədən OK basılsa
-                else if (!isPlaylistVisible) {
-
-                    // Siyahını yenidən çağırırıq
-                    channelList.style.display = 'flex';
-                    isPlaylistVisible = true;
-
-                    // Birinci kanala fokusu qaytarırıq ki, pultla hərəkət etmək olsun
-                    if(cards.length > 0) cards[0].focus();
-                }
-                break;
-
-            case 27: // ----------------- PULTDA "BACK" (QAYITMAQ) DÜYMƏSİ -----------------
-            case 10009: // Bəzi xüsusi Smart TV pultlarında Geri düyməsi
-
-                // Əgər siyahı bağlıdırsa, Geri düyməsi ilə də siyahını aça bilək
-                if (!isPlaylistVisible) {
-                    channelList.style.display = 'flex';
-                    isPlaylistVisible = true;
-                    if(cards.length > 0) cards[0].focus();
-                }
-                break;
-        }
-    });
-
-    // Səhifə ilk dəfə açılan kimi pultun fokusunu birinci kanala qoyuruq
-    window.addEventListener('DOMContentLoaded', () => {
-        setTimeout(() => {
-            if(cards.length > 0) cards[0].focus();
-        }, 3500); // Splash ekranın bitməsini gözləyir
     });
 </script>
 

@@ -1644,26 +1644,27 @@ function playTizenVideo(url) {
                  var infoPanel = document.getElementById('infoPanel'); if (infoPanel) infoPanel.style.display = "none";
              }
              
-                          // KEYCODE 10009 - SAMSUNG RETURN BACK
-             if (currentKeyCode === 10009) {
-                 e.preventDefault(); e.stopPropagation();
-                 
-                 // 📺 VƏZİYYƏT A: Əgər hal-hazırda TAM EKRANDA VİDEO OYNAYIRSA (Playlist gizlidirsə)
-                 var isVideoFullScreen = !mainUiEl || mainUiEl.style.display === "none";
+                                       // KEYCODE 10009 - SAMSUNG RETURN BACK & 461 LG webOS BACK
+             if (currentKeyCode === 10009 || currentKeyCode === 461) {
+                 e.preventDefault(); 
+                 e.stopPropagation();
+                 e.stopImmediatePropagation(); // 🔒 Android-dəki dispatcher kimi digər gizli pult siqnallarını dərhal kəsir!
+
+                 // 📺 VƏZİYYƏT A: Əgər hal-hazırda TAM EKRANDA VİDEO OYNAYIRSA (Sənin PlayerActivity-nin açıq olması mühiti)
                  var wrapperEl = document.getElementById('player-wrapper');
-                 var rightDrawerEl = document.getElementById('right-drawer');
+                 var isVideoFullScreen = wrapperEl && wrapperEl.style.display === "block";
                  
                  if (isVideoFullScreen) {
-                     console.log("KÜR IPTV: Videodan çıxılır, əsas playlistə rəvan qayıdış...");
+                     console.log("KÜR IPTV: [KOTLİN FİNİSH] Videodan çıxılır, əsas playlistə rəvan qayıdış...");
                      
-                     // 1. Hardware pleyer dayandırılır (Çöküş və səs qarışması sığortası)
+                     // 1. Sənin Kotlin handleOnBackPressed daxilində etdiyin stop() və release() əmrlərinin TV ekvivalenti:
                      if (window.webapis && window.webapis.avplay) { 
                          try { 
                              webapis.avplay.stop(); 
                              webapis.avplay.close();
                          } catch (err) {} 
                      } else {
-                         var tvPlayerEl = document.getElementById('tv-player');
+                         var tvPlayerEl = document.getElementById('tvPlayer');
                          if (tvPlayerEl) {
                              tvPlayerEl.pause();
                              tvPlayerEl.src = "";
@@ -1671,15 +1672,20 @@ function playTizenVideo(url) {
                          }
                      }
                      
-                     // 2. Pleyer pəncərəsini və sağ menyunu tam gizlədirik
+                     // Pleyerin mərkəzi sürət kilidini açırıq
+                     window.isPlayingInProgress = false;
+                     
+                     // 2. [KOTLİN FİNİSH SİMULYASİYASI] Pleyer pəncərəsini tamamilə sıradan çıxarırıq (Görünməz edirik)
                      if (wrapperEl) wrapperEl.style.display = "none";
+                     
+                     var rightDrawerEl = document.getElementById('right-drawer');
                      if (rightDrawerEl) {
                          rightDrawerEl.style.right = "-450px";
                          rightDrawerEl.style.display = "none";
                          rightDrawerEl.classList.remove('open');
                      }
                      
-                     // 3. Əsas UI elementlərini və kanal siyahısını ekranda bərpa edirik
+                     // 3. Əsas UI və kanallar siyahısını ekranda tam bərpa edirik (Bayaq səhifəni qaranlıq qoyan əsas vizual maneə bərpa olundu)
                      if (mainUiEl) mainUiEl.style.display = "block";
                      var subContainersBack = ['main-content', 'fragment-channels', 'ch-list'];
                      subContainersBack.forEach(function(id) { 
@@ -1687,10 +1693,13 @@ function playTizenVideo(url) {
                          if (el) el.style.display = "block"; 
                      });
                      
-                     document.documentElement.style.background = "#121212"; 
-                     document.body.style.background = "#121212";
+                     // 4. Səhifə bərpasını məcburi şəkildə çağırırıq ki, kanallar vizual olaraq ekrana canlansın
+                     if (typeof showFragment === 'function') {
+                         showFragment('channels');
+                     }
                      
-                     // 4. 🎯 KOTLİN TİPLİ FOKUS SIĞORTASI: Pultu sonuncu baxılan kanala qaytarırıq
+                     // 5. 🎯 KOTLİN TİPLİ RECYCLERVIEW FOKUS SIĞORTASI: Sənin `scrollToPosition` məntiqin!
+                     // Pult fokusu havada qalıb MSX tərəfindən qəsb olunmasın deyə, pultu dərhal az öncə baxılan kanala bağlayır!
                      setTimeout(function() {
                          var currentIdx = channels.findIndex(function(c){ return c.url === currentUrl; });
                          var targetCard = (currentIdx !== -1) ? document.getElementById('ch_' + currentIdx) : document.getElementById('ch_0');
@@ -1698,7 +1707,8 @@ function playTizenVideo(url) {
                              targetCard.focus();
                              targetCard.scrollIntoView({ block: "center", behavior: "auto" });
                          }
-                     }, 100);
+                     }, 150);
+                     
                      return false;
                  }
                  
@@ -1716,7 +1726,7 @@ function playTizenVideo(url) {
                  } else { window.close(); }
                  return false;
              }
-         
+
              // FULLSCREEN VIDEO REJİMİ (KÜR IPTV: PROFESSIONAL NAVİQASİYA MATRİSİ - TAM SAĞLAM)
              var wrapper = document.getElementById('player-wrapper');
              var rightDrawer = document.getElementById('right-drawer');
@@ -2513,4 +2523,3 @@ document.addEventListener('DOMContentLoaded', function() {
       <img id="my-logo" src="my-logo.png" onerror="console.log('❌ Loqo şəkli qovluqda tapılmadı!')" alt="Logo">
    </head>
    <body>
-         

@@ -403,10 +403,9 @@
    <body>
 
 
-     <!-- data-msx="ignore" atributu MSX-in Geri düyməsini qəsb etməsini 100% bloklayır! -->
-<div id="player-wrapper" data-msx="ignore" style="position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 1;"> 
-    <video id="tvPlayer" autoplay></video> 
-</div>
+      <div id="player-wrapper" style="position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 1;">
+         <video id="tvPlayer" autoplay></video>
+      </div>
       <!-- 🔒 2-Cİ HİSSƏ: SAĞ TƏRƏFDƏKİ PLEYER KANAL MENYUSU (Sənin binding.drawerLayout ekvivalentin) -->
       <div id="right-drawer">
          <div style="padding: 25px; border-bottom: 1px solid #333; text-align: center; background: var(--primary);">
@@ -1966,13 +1965,63 @@ function playTizenVideo(url) {
          }
          }
          
-         // =========================================================================
+                  // =========================================================================
          // 🎯 REYAL TV PULTU: ƏSAS PLAYLIST + KONTEKST MODAL PARALEL İDARƏETMƏSİ
          // =========================================================================
          document.addEventListener('keydown', function(e) {
          var rightDrawer = document.getElementById('right-drawer');
          var contextModal = document.getElementById('context-modal');
+         var currentKeyCode = e.keyCode || e.which;
          
+         // 📺 [KOTLİN VİDEO REJİMİ BACK STACK SIĞORTASI]
+         // Əgər hal-hazırda video tam ekranda oynayırsa VƏ pultda BACK (10009 / 461) və ya ESC (27) basılarsa
+         if (currentKeyCode === 10009 || currentKeyCode === 461 || currentKeyCode === 27) {
+             var wrapperEl = document.getElementById('player-wrapper');
+             if (wrapperEl && wrapperEl.style.display === "block") {
+                 e.preventDefault();
+                 e.stopPropagation();
+                 if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+                 
+                 console.log("KÜR IPTV: [KOTLİN BACKSTACK] Videodan çıxılır, playlist bərpa edilir...");
+                 
+                 // 1. Hardware video drayverini tamamilə söndürürük (Səs qarışması sığortası)
+                 var videoElement = document.getElementById('tvPlayer');
+                 if (videoElement) { 
+                     videoElement.pause(); 
+                     videoElement.src = ""; 
+                     if (typeof videoElement.load === "function") videoElement.load();
+                 }
+                 
+                 // Sürət kilidini sıfırlayırıq
+                 window.isPlayingInProgress = false;
+                 
+                 // 2. Pleyer pəncərəsini gizlədib, tətbiqin öz ana interfeysini bərpa edirik
+                 wrapperEl.style.display = "none";
+                 var mainUiEl = document.getElementById('main-ui');
+                 if (mainUiEl) mainUiEl.style.display = "flex";
+                 
+                 // 3. Sənin daxili kanal bərpa funksiyanı çağırırıq
+                 if (typeof showFragment === 'function') {
+                     showFragment('channels');
+                 }
+                 
+                 // 4. 🎯 KOTLİN RECYCLER FOKUS SIĞORTASI (ScrollToPosition ekvivalenti)
+                 // Fokus itməsin və MSX tətbiqdən çıxmasın deyə pultu dərhal kanala kilidləyirik
+                 setTimeout(function() {
+                     var idx = channels.findIndex(function(c) { return c.url === currentUrl; });
+                     var card = document.getElementById('ch_' + (idx !== -1 ? idx : 0));
+                     if (card) {
+                         card.focus();
+                         if (typeof card.scrollIntoView === "function") {
+                             card.scrollIntoView({ block: "center", behavior: "auto" });
+                         }
+                     }
+                 }, 120);
+                 
+                 return false;
+             }
+         }
+
          // Sığorta: Əgər sağ pleyer menyusu açıqdırsa, bu kod işləmir
          if (rightDrawer && rightDrawer.style.right === "0px") return;
          
@@ -1989,7 +2038,7 @@ function playTizenVideo(url) {
          ];
          var menuIndex = menuItems.indexOf(activeEl);
          
-         switch (e.keyCode) {
+         switch (currentKeyCode) {
              case 38: // Pultun Yuxarı düyməsi
                  e.preventDefault();
                  var prevIdx = (menuIndex <= 0) ? menuItems.length - 1 : menuIndex - 1;
@@ -2008,6 +2057,7 @@ function playTizenVideo(url) {
                  break;
                  
              case 10009: // Tizen BACK düyməsi
+             case 461:   // webOS BACK düyməsi
              case 27:    // PC ESC düyməsi
                  e.preventDefault();
                  closeContextModal();
@@ -2023,7 +2073,7 @@ function playTizenVideo(url) {
          var currentIndex = parseInt(activeEl.id.replace('ch_', ''), 10);
          var nextCard = null;
          
-         switch (e.keyCode) {
+         switch (currentKeyCode) {
              case 38: // Yuxarı
                  e.preventDefault();
                  nextCard = document.getElementById('ch_' + (currentIndex - 1));
@@ -2042,10 +2092,9 @@ function playTizenVideo(url) {
                  }
                  break;
                  
-             // Qlobal olaraq yuxarıda bir yerə bu dəyişəni ata bilərsən (əgər yoxdursa)
          var menuOpenTimer = null;
          
-         // Düymənin daxili isə belə olmalıdır:
+         // Dümmaənin daxili isə belə olmalıdır:
          case 39: // Sağa düyməsi -> İndi gecikmə ilə açılacaq
          e.preventDefault();
          
@@ -2057,10 +2106,9 @@ function playTizenVideo(url) {
          if (typeof openContextModal === 'function') {
              openContextModal(currentIndex); 
          }
-         }, 350); // Bu rəqəmi artırıb-azalda bilərsən (məsələn, 500 etsən yarım saniyə gözləyər)
+         }, 350); 
          break;
          
-                 
              case 13: // Enter / OK
                  e.preventDefault();
                  activeEl.click();
@@ -2068,6 +2116,7 @@ function playTizenVideo(url) {
          }
          }
          });
+
          
          // =========================================================================
          // 🎯 DÜYMƏ KLİKLƏRİ: (PIN, AXTAR, BAĞLA MƏNTİQİNİN KLİK AKTYORLARI)

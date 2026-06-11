@@ -1099,7 +1099,7 @@ function playTizenVideo(url) {
         return;
     }
 
-       console.log("KÜR IPTV: Tizen pleyer başladılır -> " + url);
+    console.log("KÜR IPTV: Tizen pleyer başladılır -> " + url);
     window.isPlayingInProgress = true; // Pleyeri dərhal kilidləyirik
 
     // 🔥 1.2 saniyəlik avtomatik kilid qoparıcı (Kotlin tipli Sürət Sığortası)
@@ -1113,7 +1113,6 @@ function playTizenVideo(url) {
     currentUrl = url; 
     isInitialChannelLoaded = true;
    
-    
     var mainUiEl = document.getElementById('main-ui');
     if (mainUiEl) mainUiEl.style.display = "none"; 
     
@@ -1164,6 +1163,12 @@ function playTizenVideo(url) {
         try {
             webapis.avplay.stop();
             webapis.avplay.open(url);
+            
+            // 🎯 MPEG-TS LİNKİ ÜÇÜN TİZEN CANLI YAYIM AYARI (Əlavə olundu):
+            if (url.indexOf("mpegts") !== -1 || url.indexOf(".ts") !== -1) {
+                webapis.avplay.setStreamingProperty("IS_LIVE", "true");
+            }
+            
             webapis.avplay.setDisplayMethod('PLAYER_DISPLAY_MODE_LETTER_BOX');
             
             var rightDrawer = document.getElementById('right-drawer');

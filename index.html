@@ -1648,26 +1648,48 @@ function playTizenVideo(url) {
                  var infoPanel = document.getElementById('infoPanel'); if (infoPanel) infoPanel.style.display = "none";
              }
              
-             // KEYCODE 10009 - SAMSUNG RETURN BACK
-             if (currentKeyCode === 10009) {
-                 e.preventDefault(); e.stopPropagation();
-                 var isVideoFullScreen = !mainUiEl || mainUiEl.style.display === "none";
-                 
-                 if (isVideoFullScreen) {
-                     if (window.webapis && window.webapis.avplay) { try { webapis.avplay.stop(); } catch (err) {} }
-                     if (mainUiEl) mainUiEl.style.display = "block";
-                     
-                     var subContainersBack = ['main-content', 'fragment-channels', 'ch-list'];
-                     subContainersBack.forEach(function(id) { var el = document.getElementById(id); if (el) el.style.display = "block"; });
-                     document.documentElement.style.background = "#121212"; document.body.style.background = "#121212";
-                     
-                     setTimeout(function() {
-                         var currentIdx = channels.findIndex(function(c){ return c.url === currentUrl; });
-                         var targetCard = (currentIdx !== -1) ? document.getElementById('ch_' + currentIdx) : document.getElementById('ch_0');
-                         if (targetCard) targetCard.focus();
-                     }, 60);
-                     return false;
-                 }
+             // =========================================================================
+// 🎯 KÜR IPTV: AKILLI BACK (GERİ) DÜYMƏ SİĞORTASI (MSX-DƏN ATMAZ)
+// =========================================================================
+if (currentKeyCode === 10009) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    var mainUiEl = document.getElementById('main-ui');
+    var isVideoFullScreen = !mainUiEl || mainUiEl.style.display === "none";
+    
+    // 1️⃣ Addım: Əgər video tam ekranda oynayırsa, videodan çıx və playlistə qayıt
+    if (isVideoFullScreen) {
+        // ... (Videonu dayandırır və interfeysi qaytarır)
+        return false;
+    }
+    
+    // 2️⃣ Addım: Əgər sol hamburger menyu (drawer) açıqdırsa, yalnız menyunu bağla
+    if (drawer && drawer.classList.contains('open')) {
+        drawer.classList.remove('open');
+        // ...
+        return false;
+    }
+    
+    // 3️⃣ Addım: Əgər istifadəçi "Ayarlar" fragmentindədirsə, "Kanallar"a geri qayıt!
+    var activeFragment = document.querySelector('.fragment.active');
+    if (activeFragment && activeFragment.id !== 'fragment-channels') {
+        if (typeof showFragment === 'function') { showFragment('channels'); }
+        return false;
+    }
+    
+    // 4️⃣ Addım: Son çıxış təsdiqi
+    var confirmExit = confirm("KÜR IPTV tətbiqindən çıxmaq istədiyinizə əminsiniz?");
+    if (confirmExit) {
+        if (window.tizen && window.tizen.application) {
+            try { tizen.application.getCurrentApplication().exit(); } catch(err) { window.close(); }
+        } else {
+            window.close();
+        }
+    }
+    return false;
+}
+
                  
                  if (drawer && drawer.classList.contains('open')) {
                      drawer.classList.remove('open');

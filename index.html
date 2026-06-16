@@ -1542,51 +1542,71 @@ playerList.appendChild(fragment); // Bütün kanalları tək bir saniyədə ekra
              }
          }
 
-        // 🎯 5-Cİ HİSSƏ: REAL TV DRAWER NAVİQASİYASI (Kotlin moveSelection və onKeyDown ekvivalentin)
-         var wrapper = document.getElementById('player-wrapper');
-         var rightDrawer = document.getElementById('right-drawer');
-         var isMenuOpen = rightDrawer && (rightDrawer.style.right === "0px" || rightDrawer.classList.contains('open'));
-         var currentKeyCode = e.keyCode || e.which;
+        // =========================================================================
+// 🎯 5-Cİ HİSSƏ: REAL TV DRAWER NAVİQASİYASI (Kotlin moveSelection və onKeyDown ekvivalentin)
+// =========================================================================
+var wrapper = document.getElementById('player-wrapper');
+var rightDrawer = document.getElementById('right-drawer');
+var isMenuOpen = rightDrawer && (rightDrawer.style.right === "0px" || rightDrawer.style.display === "block" || rightDrawer.classList.contains('open'));
+var currentKeyCode = e.keyCode || e.which;
 
-         if (isMenuOpen) {
-             var menuItems = Array.from(document.querySelectorAll('.player-channel-card'));
-             var menuIndex = menuItems.indexOf(document.activeElement);
+if (isMenuOpen) {
+    var menuItems = Array.from(document.querySelectorAll('.player-channel-card'));
+    var menuIndex = menuItems.indexOf(document.activeElement);
 
-             // 1. Sağ menyu daxilində YUXARI pult hərəkəti
-             if (e.key === "ArrowUp" || currentKeyCode === 38) {
-                 e.preventDefault(); e.stopPropagation();
-                 if (menuIndex > 0) {
-                     menuItems[menuIndex - 1].focus();
-                     menuItems[menuIndex - 1].scrollIntoView({ block: "nearest", behavior: "smooth" });
-                 } else {
-                     menuItems[menuItems.length - 1].focus(); // Döngüsel keçid
-                     menuItems[menuItems.length - 1].scrollIntoView({ block: "nearest", behavior: "smooth" });
-                 }
-                 if (typeof resetHideMenuTimer === 'function') resetHideMenuTimer();
-                 return false;
-             }
+    // 1️⃣ Sağ menyu daxilində YUXARI pult hərəkəti
+    if (e.key === "ArrowUp" || currentKeyCode === 38) {
+        e.preventDefault(); 
+        e.stopPropagation();
+        if (menuIndex > 0) {
+            menuItems[menuIndex - 1].focus();
+            menuItems[menuIndex - 1].scrollIntoView({ block: "nearest", behavior: "smooth" });
+        } else if (menuItems.length > 0) {
+            menuItems[menuItems.length - 1].focus(); // Döngüsel keçid
+            menuItems[menuItems.length - 1].scrollIntoView({ block: "nearest", behavior: "smooth" });
+        }
+        if (typeof resetHideMenuTimer === 'function') resetHideMenuTimer();
+        return false;
+    }
 
-             // 2. Sağ menyu daxilində AŞAĞI pult hərəkəti
-             if (e.key === "ArrowDown" || currentKeyCode === 40) {
-                 e.preventDefault(); e.stopPropagation();
-                 if (menuIndex < menuItems.length - 1) {
-                     menuItems[menuIndex + 1].focus();
-                     menuItems[menuIndex + 1].scrollIntoView({ block: "nearest", behavior: "smooth" });
-                 } else {
-                     menuItems[0].focus(); // Döngüsel olaraq birinciyə qayıt
-                     menuItems[0].scrollIntoView({ block: "nearest", behavior: "smooth" });
-                 }
-                 if (typeof resetHideMenuTimer === 'function') resetHideMenuTimer();
-                 return false;
-             }
+    // 2️⃣ Sağ menyu daxilində AŞAĞI pult hərəkəti
+    if (e.key === "ArrowDown" || currentKeyCode === 40) {
+        e.preventDefault(); 
+        e.stopPropagation();
+        if (menuIndex < menuItems.length - 1) {
+            menuItems[menuIndex + 1].focus();
+            menuItems[menuIndex + 1].scrollIntoView({ block: "nearest", behavior: "smooth" });
+        } else if (menuItems.length > 0) {
+            menuItems[0].focus(); // Döngüsel olaraq birinciyə qayıt
+            menuItems[0].scrollIntoView({ block: "nearest", behavior: "smooth" });
+        }
+        if (typeof resetHideMenuTimer === 'function') resetHideMenuTimer();
+        return false;
+    }
 
-             // 3. Sağ menyu açıq olanda BACK (Geri / Escape) basılarsa yalnız menyunu bağla!
-             if (e.key === "Escape" || currentKeyCode === 27 || currentKeyCode === 10009 || currentKeyCode === 461) {
-                 e.preventDefault(); e.stopPropagation();
-                 if (typeof closePlayerMenu === 'function') { closePlayerMenu(); }
-                 return false;
-             }
-         }
+    // 3️⃣ Sağ menyu daxilində OK / ENTER hərəkəti (Kanalı seçmək üçün sığorta)
+    if (e.key === "Enter" || currentKeyCode === 13) {
+        e.preventDefault();
+        e.stopPropagation();
+        var activeEl = document.activeElement;
+        if (activeEl && activeEl.classList.contains('player-channel-card')) {
+            activeEl.click(); // Kartın daxilindəki click funksiyasını tətikləyir
+        }
+        return false;
+    }
+
+    // 4️⃣ Sağ menyu açıq olanda BACK (Geri / Escape) basılarsa - TƏTBİQDƏN ÇIXMA, YALNIZ MENYUNU BAĞLA!
+    if (e.key === "Escape" || currentKeyCode === 27 || currentKeyCode === 10009 || currentKeyCode === 461) {
+        e.preventDefault(); 
+        e.stopPropagation();
+        console.log("KÜR IPTV: Sağ menyu açıq ikən BACK basıldı, yalnız menyu bağlanır.");
+        if (typeof closePlayerMenu === 'function') { 
+            closePlayerMenu(); 
+        }
+        return false;
+    }
+}
+
 
          // 4. Video oynayarkən Enter basılarsa sağ pleyer menyusunu (Drawer) aç!
          if (e.key === "Enter" || currentKeyCode === 13) {

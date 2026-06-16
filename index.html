@@ -1931,107 +1931,198 @@ if (isMenuOpen) {
      }
 
      // =========================================================================
-     // 🎯 REYAL TV PULTU: ƏSAS PLAYLIST + KONTEKST MODAL PARALEL İDARƏETMƏSİ
-     // =========================================================================
-     document.addEventListener('keydown', function(e) {
-     var rightDrawer = document.getElementById('right-drawer');
-     var contextModal = document.getElementById('context-modal');
+// 🎯 REYAL TV PULTU: ƏSAS PLAYLIST + KONTEKST MODAL PARALEL İDARƏETMƏSİ
+// =========================================================================
+// 🔒 Sığorta: Qlobal dəyişəni funksiyanın tam xaricində (ən yuxarıda) təhlükəsiz saxlayırıq
+if (typeof window.menuOpenTimer === 'undefined') {
+    window.menuOpenTimer = null;
+}
 
-     // Sığorta: Əgər sağ pleyer menyusu açıqdırsa, bu kod işləmir
-     if (rightDrawer && rightDrawer.style.right === "0px") return;
+document.addEventListener('keydown', function(e) {
+    var rightDrawer = document.getElementById('right-drawer');
+    var contextModal = document.getElementById('context-modal');
+    var wrapper = document.getElementById('player-wrapper');
+    var mainUiEl = document.getElementById('main-ui');
+    var tvPlayer = document.getElementById('tvPlayer');
+    var splashEl = document.getElementById('splash');
+    var loginEl = document.getElementById('login-screen');
+    var activeEl = document.activeElement;
+    var currentKeyCode = e.keyCode || e.which;
 
-     var activeEl = document.activeElement;
+    // 🔒 Sığorta 1: Əgər sağ pleyer menyusu tam açıqdırsa, bu kod aşağı sızmasın, sağ menyunun öz kodu işləsin
+    var isRightDrawerOpen = rightDrawer && (rightDrawer.style.right === "0px" || rightDrawer.style.display === "block" || rightDrawer.classList.contains('open'));
+    if (isRightDrawerOpen) return;
 
-     // ----------------------------------------------------
-     // VƏZİYYƏT A): KONTEKST MENYU EKRANDA HAL-HAZIRDA AÇIQDIRSA
-     // ----------------------------------------------------
-     if (contextModal && contextModal.style.display === "flex") {
-     var menuItems = [
-         document.getElementById('ctx-pin'),
-         document.getElementById('ctx-search'),
-         document.getElementById('ctx-close')
-     ];
-     var menuIndex = menuItems.indexOf(activeEl);
+    // ------------------------------------------------------------------
+    // VƏZİYYƏT A): KONTEKST MENYU (PIN/AXTAR/BAĞLA) EKRANDA HAL-HAZIRDA AÇIQDIRSA
+    // ------------------------------------------------------------------
+    var isContextActive = contextModal && (contextModal.style.display === "flex" || contextModal.style.display === "block");
+    if (isContextActive) {
+        var menuItems = [
+            document.getElementById('ctx-pin'),
+            document.getElementById('ctx-search'),
+            document.getElementById('ctx-close')
+        ].filter(Boolean);
+        var menuIndex = menuItems.indexOf(activeEl);
 
-     switch (e.keyCode) {
-         case 38: // Pultun Yuxarı düyməsi
-             e.preventDefault();
-             var prevIdx = (menuIndex <= 0) ? menuItems.length - 1 : menuIndex - 1;
-             if (menuItems[prevIdx]) menuItems[prevIdx].focus();
-             break;
+        switch (currentKeyCode) {
+            case 38: // Pultun Yuxarı düyməsi
+                e.preventDefault(); e.stopPropagation();
+                var prevIdx = (menuIndex <= 0) ? menuItems.length - 1 : menuIndex - 1;
+                if (menuItems[prevIdx]) menuItems[prevIdx].focus();
+                break;
 
-         case 40: // Pultun Aşağı düyməsi
-             e.preventDefault();
-             var nextIdx = (menuIndex === -1 || menuIndex === menuItems.length - 1) ? 0 : menuIndex + 1;
-             if (menuItems[nextIdx]) menuItems[nextIdx].focus();
-             break;
+            case 40: // Pultun Aşağı düyməsi
+                e.preventDefault(); e.stopPropagation();
+                var nextIdx = (menuIndex === -1 || menuIndex === menuItems.length - 1) ? 0 : menuIndex + 1;
+                if (menuItems[nextIdx]) menuItems[nextIdx].focus();
+                break;
 
-         case 13: // Pultun OK / Enter düyməsi
-             e.preventDefault();
-             if (activeEl) activeEl.click();
-             break;
+            case 13: // Pultun OK / Enter düyməsi
+                e.preventDefault(); e.stopPropagation();
+                if (activeEl) activeEl.click();
+                break;
 
-         case 10009: // Tizen BACK düyməsi
-         case 27:    // PC ESC düyməsi
-             e.preventDefault();
-             closeContextModal();
-             break;
-     }
-     return; // Menyu açıq olduqda playlist hərəkətlərini blokla
-     }
+            case 10009: // Tizen BACK düyməsi
+            case 461:   // webOS BACK düyməsi
+            case 27:    // PC ESC düyməsi
+                e.preventDefault(); e.stopPropagation();
+                if (typeof closeContextModal === 'function') closeContextModal();
+                break;
+        }
+        return false; // Menyu açıq olduqda aşağıdakı playlist hərəkətlərini tamamilə blokla
+    }
 
-     // ----------------------------------------------------
-     // VƏZİYYƏT B): PULT ƏSAS PLAYLISTİN ÜZƏRİNDƏDİRSƏ
-     // ----------------------------------------------------
-     if (activeEl && activeEl.id && activeEl.id.indexOf('ch_') === 0) {
-     var currentIndex = parseInt(activeEl.id.replace('ch_', ''), 10);
-     var nextCard = null;
+    // ------------------------------------------------------------------
+    // VƏZİYYƏT B): VİDEO TAM EKRANDA OYNAYANDA (VİDEODAN ÇIXIŞ / BACK PROSESİ)
+    // ------------------------------------------------------------------
+    var isVideoFullScreen = (wrapper && wrapper.style.display === "block") || (!mainUiEl || mainUiEl.style.display === "none");
+    if (isVideoFullScreen) {
+        if (currentKeyCode === 10009 || currentKeyCode === 461 || currentKeyCode === 27) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log("KÜR IPTV: Videodan çıxış əmri gəldi. Splash yenidən yüklənməsi 100% əngəlləndi.");
 
-     switch (e.keyCode) {
-         case 38: // Yuxarı
-             e.preventDefault();
-             nextCard = document.getElementById('ch_' + (currentIndex - 1));
-             if (nextCard) {
-                 nextCard.focus();
-                 nextCard.scrollIntoView({ block: "center", behavior: "smooth" });
-             }
-             break;
+            // 1. Hardware video drayverini dayandırırıq və RAM-dan silirik
+            if (window.webapis && window.webapis.avplay) {
+                try {
+                    webapis.avplay.stop();
+                    webapis.avplay.close();
+                } catch (err) { console.log(err); }
+            } else if (tvPlayer) {
+                tvPlayer.pause();
+                tvPlayer.src = "";
+                tvPlayer.load();
+            }
 
-         case 40: // Aşağı
-             e.preventDefault();
-             nextCard = document.getElementById('ch_' + (currentIndex + 1));
-             if (nextCard) {
-                 nextCard.focus();
-                 nextCard.scrollIntoView({ block: "center", behavior: "smooth" });
-             }
-             break;
+            // Pleyer kilidini açırıq
+            window.isPlayingInProgress = false;
 
-         // Qlobal olaraq yuxarıda bir yerə bu dəyişəni ata bilərsən (əgər yoxdursa)
-     var menuOpenTimer = null;
+            // 🛑 KRİTİK ADIM: Splash və Login ekranlarının təkrar oyanmasını tamamilə qadağan edirik!
+            if (splashEl) splashEl.style.display = "none";
+            if (loginEl) loginEl.style.display = "none";
 
-     // Düymənin daxili isə belə olmalıdır:
-     case 39: // Sağa düyməsi -> İndi gecikmə ilə açılacaq
-     e.preventDefault();
+            // 2. Yalnız mövcud playlist elementlərini yenidən görünən edirik
+            if (wrapper) wrapper.style.display = "none";
+            if (mainUiEl) mainUiEl.style.display = "block";
+            
+            var mainPlaylist = document.getElementById('fragment-channels');
+            if (mainPlaylist) mainPlaylist.style.display = "block";
+            
+            var chListDiv = document.getElementById('ch-list');
+            if (chListDiv) chListDiv.style.display = "block";
 
-     // Əgər istifadəçi sürətlə düymələrə basırsa, köhnə açılma tələbini dərhal ləğv et
-     if (menuOpenTimer) clearTimeout(menuOpenTimer);
+            document.documentElement.style.background = "#121212";
+            document.body.style.background = "#121212";
 
-     // 350ms (0.35 saniyə) gözlə, əgər hələ də eyni yerdədirsə, menyunu aç
-     menuOpenTimer = setTimeout(function() {
-     if (typeof openContextModal === 'function') {
-         openContextModal(currentIndex); 
-     }
-     }, 350); // Bu rəqəmi artırıb-azalda bilərsən (məsələn, 500 etsən yarım saniyə gözləyər)
-     break;
+            // 3. 🔒 FOKUS REZERV ZIREHİ: İzlədiyin kanalın indeksini tapıb pult fokusunu bura rəvan bağlayırıq
+            setTimeout(function() {
+                var lastIdx = (typeof contextChannelIndex !== 'undefined' && contextChannelIndex !== null) ? contextChannelIndex : 0;
+                var lastActiveCard = document.getElementById('ch_' + lastIdx);
+                if (lastActiveCard) {
+                    lastActiveCard.focus();
+                    lastActiveCard.scrollIntoView({ block: "center", behavior: "auto" });
+                }
+            }, 80);
+            return false;
+        }
+        return; // Video oynayarkən digər playlist düymələri sızmasın
+    }
 
+    // ------------------------------------------------------------------
+    // VƏZİYYƏT C): PULT ƏSAS PLAYLISTİN ÜZƏRİNDƏDİRSƏ (KANAL SİYAHISI)
+    // ------------------------------------------------------------------
+    if (activeEl && activeEl.id && activeEl.id.indexOf('ch_') === 0) {
+        var currentIndex = parseInt(activeEl.id.replace('ch_', ''), 10);
+        contextChannelIndex = currentIndex; // Qlobal indeks yaddaşı (Geri qayıdanda bura fokuslanacaq)
 
-         case 13: // Enter / OK
-             e.preventDefault();
-             activeEl.click();
-             break;
-     }
-     }
-     });
+        switch (currentKeyCode) {
+            case 38: // Yuxarı
+                e.preventDefault();
+                var prevCard = document.getElementById('ch_' + (currentIndex - 1));
+                if (prevCard) {
+                    prevCard.focus();
+                    prevCard.scrollIntoView({ block: "center", behavior: "auto" });
+                } else {
+                    var hamburger = document.getElementById('hamburger');
+                    if (hamburger) hamburger.focus();
+                }
+                break;
+
+            case 40: // Aşağı
+                e.preventDefault();
+                var nextCard = document.getElementById('ch_' + (currentIndex + 1));
+                if (nextCard) {
+                    nextCard.focus();
+                    nextCard.scrollIntoView({ block: "center", behavior: "auto" });
+                }
+                break;
+
+            case 39: // Sağa düyməsi -> Gecikmə taymeri ilə Kontekst Menyunu açır
+                e.preventDefault(); e.stopPropagation();
+                if (window.menuOpenTimer) clearTimeout(window.menuOpenTimer);
+                window.menuOpenTimer = setTimeout(function() {
+                    var currentActive = document.activeElement;
+                    if (currentActive && currentActive.id === 'ch_' + currentIndex) {
+                        if (typeof openContextModal === 'function') {
+                            openContextModal(currentIndex); 
+                        }
+                    }
+                }, 350);
+                break;
+
+            case 13: // Enter / OK -> Kanala daxil olur və videonu açır
+                e.preventDefault(); e.stopPropagation();
+                if (typeof activeEl.click === 'function') {
+                    activeEl.click();
+                }
+                break;
+
+            case 10009: // Playlist daxilində BACK basıldıqda - Tətbiqdən çıxış sığortası
+            case 461:
+                e.preventDefault(); e.stopPropagation();
+                
+                // Əgər hər hansı başqa alt fragment (Ayarlar və s.) aktivdirsə, əvvəlcə əsas playlistə at
+                var channelsFragment = document.getElementById('fragment-channels');
+                var isChannelsActive = channelsFragment ? channelsFragment.classList.contains('active') : false;
+                if (!isChannelsActive) {
+                    if (typeof showFragment === 'function') showFragment('channels');
+                    return false;
+                }
+
+                console.log("KÜR IPTV: Əsas playlistdə çıxış əmri, MSX portalı rəvan qapadılır.");
+                if (window.msxApp && window.msxApp.exit) {
+                    window.msxApp.exit(); 
+                } else if (window.tizen && tizen.application) {
+                    try { tizen.application.getCurrentApplication().exit(); } catch(err) { window.close(); }
+                } else {
+                    window.close();
+                }
+                break;
+        }
+    }
+}, true); // True siqnal ötürücüsü bütün kənar skriptləri dondurub öncəliyi bu zirehə verir
+
 
      // =========================================================================
      // 🎯 DÜYMƏ KLİKLƏRİ: (PIN, AXTAR, BAĞLA MƏNTİQİNİN KLİK AKTYORLARI)

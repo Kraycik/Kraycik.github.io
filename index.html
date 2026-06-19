@@ -386,17 +386,7 @@
      }
      }
 </style>
-<!-- Həm TV-də, həm Web MSX-də işləyən Təhlükəsizlik Kodu -->
-<script>
-    // Linkdə "?mode=tvapp" sözünün olub-olmadığını yoxlayır
-    var urlParams = new URLSearchParams(window.location.search);
-    var isTV = urlParams.get('mode') === 'tvapp';
 
-    // Əgər link birbaşa açılıbsa (yəni o xüsusi parametr yoxdursa)
-    if (!isTV) {
-        // Girişi dərhal blokla və Google-a yönləndir
-        window.location.replace("https://google.com");
-    }
 </script>
 </head>
 <body>

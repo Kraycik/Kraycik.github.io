@@ -5,6 +5,10 @@
 <!-- Исправленный viewport по стандарту Tizen TV (убирает придирки валидатора) -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>KÜR IPTV Smart Web Portal</title>
+
+<!-- MSX API Kitabxanası (Pult düymələri üçün mütləqdir) -->
+<script type="text/javascript" src="https://benzac.de"></script>
+
 <script>
    // ЗАГЛУШКА ДЛЯ TIZEN STORE: Отключаем alert API и перенаправляем в консоль
    window.alert = function(message) {
@@ -13,9 +17,25 @@
    // На всякий случай отключаем confirm и prompt, их тоже запрещает робот
    window.confirm = function() { return true; };
    window.prompt = function() { return null; };
+
+   // --- MSX (Media Station X) Doğma İnteqrasiya və GERİ Düyməsi ---
+   window.addEventListener('load', function() {
+       if (typeof TVXServices !== 'undefined') {
+           // MSX-ə portalı doğma tətbiq kimi qeydiyyatdan keçirməyi əmr edirik
+           TVXServices.init();
+
+           // Pultda GERİ (Back) basılanda icra olunacaq əmr
+           TVXServices.setBackAction(function() {
+               // Əgər istifadəçi portalın ana ekranındadırsa, tətbiqi tam bağlayır
+               // və brauzer xətası vermədən MSX-in doğma ana menyusuna qaytarır
+               TVXServices.exit();
+           });
+       }
+   });
 </script>
 
 <style>
+
 
    :root { 
    --primary: #6200EE; 

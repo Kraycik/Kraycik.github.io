@@ -1,15 +1,6 @@
 {
   "name": "KÜR IPTV",
   "version": "1.0.0",
-  "parameter": "menu:https://github.io",
-  "icon": "https://github.io",
-  "type": "html",
-  "launch": {
-    "type": "html",
-    "id": "kur_iptv_smart_portal",
-    "action": "link:https://kraycik.github.io/index.html?mode=tvapp"
-  },
-  "response": {
-    "action": "resume"
-  }
+  "parameter": "menu:https://kraycik.github.io/msx/start.json",
+  "action": "link:https://kraycik.github.io/index.html?mode=tvapp"
 }

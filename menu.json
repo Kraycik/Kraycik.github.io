@@ -5,10 +5,16 @@
   "menu": [
     {
       "title": "KÜR IPTV Portalını Başlat",
-      "icon": "https://github.io/logo.png",
+      "icon": "https://kraycik.github.io/logom.png",
       "name": "Start_Portal",
-      "action": "link:https://kraycik.github.io/start.json"
+      "type": "html",
+      "id": "kur_iptv_smart_portal",
+       "action": "link:https://kraycik.github.io/index.html?mode=tvapp"
     }
-  ]
+  ],
+  "response": {
+    "action": "resume"
+  }
 }
+
 
